@@ -1,0 +1,20 @@
+__pycache__/
+*.pyc
+.DS_Store
+
+# nunca versionar laudo, pedido ou dado coletado de caso real
+*.jsonl
+achados*.json
+parcial*.json
+Paspalho/
+pedidos/
+andamento/
+
+# credenciais
+.env
+.env.*
+*.pem
+*.key
+
+# extensão desktop (experimento descartado, só local)
+desktop/

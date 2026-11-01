@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paspalhômetro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Laudo de perícia: papel frio, tinta azul-petróleo, carimbo laranja-palhaço pro achado e vermelho pro grave.
+   Layout: formulário no topo → log ao vivo → laudo (placar, termômetro, tabela, padrão, alvos, sobre você). */
+:root{
+  --paper:#f2f4f3; --card:#ffffff; --ink:#15232b; --muted:#5d6b72; --line:#d9dfdf;
+  --accent:#e4620c; --grave:#c62f2f; --ok:#2f7d5b; --soft:#e9eeed;
+  --display:"Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+  --body:"IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#11181c; --card:#18222a; --ink:#e6ecee; --muted:#93a3aa; --line:#2a3740;
+    --accent:#ff7a2e; --grave:#ff5b5b; --ok:#4fbf8e; --soft:#1f2b33; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#11181c; --card:#18222a; --ink:#e6ecee; --muted:#93a3aa; --line:#2a3740;
+  --accent:#ff7a2e; --grave:#ff5b5b; --ok:#4fbf8e; --soft:#1f2b33; color-scheme: dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font:16px/1.55 var(--body)}
+main{max-width:1040px;margin:0 auto;padding:36px 20px 80px;display:grid;gap:28px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;letter-spacing:-.01em}
+h1{font-size:clamp(34px,6vw,54px);font-weight:800;line-height:1}
+h1 span{color:var(--accent)}
+h2{font-size:24px;font-weight:800}
+h3{font-size:17px;font-weight:600}
+.lede{color:var(--muted);max-width:62ch;margin:8px 0 0}
+.kicker{font:500 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px}
+form{display:grid;gap:18px}
+label{font-weight:600;display:block;margin-bottom:6px}
+.hint{font-size:13px;color:var(--muted);margin-top:6px}
+textarea,input[type=text]{width:100%;font:15px/1.5 var(--body);color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+textarea{min-height:84px;resize:vertical}
+textarea:focus,input:focus,button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 45%,transparent);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.check{display:flex;gap:8px;align-items:center;font-size:14px}
+.btn{font:700 16px/1 var(--display);background:var(--accent);color:#fff;border:0;border-radius:999px;padding:15px 26px;cursor:pointer}
+.btn:disabled{opacity:.5;cursor:progress}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);font:500 14px var(--body);padding:11px 16px}
+.status{font-size:13px;color:var(--muted)}
+.steps{margin:14px 0 0;padding-left:22px;display:grid;gap:10px}
+code{font:13px var(--mono);background:var(--soft);padding:2px 6px;border-radius:5px}
+code.url{display:block;margin-top:8px;padding:10px 12px;overflow-wrap:anywhere}
+.warn{border-left:4px solid var(--accent);background:var(--soft);padding:10px 14px;border-radius:8px;font-size:14px}
+/* log ao vivo */
+#log{display:grid;gap:6px;font:13px/1.45 var(--mono)}
+.step{display:grid;grid-template-columns:22px 1fr;gap:8px;align-items:start}
+.step .ic{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-size:11px;margin-top:1px}
+.step.run .ic{border:2px solid var(--accent);border-right-color:transparent;animation:spin .8s linear infinite}
+.step.ok .ic{background:var(--ok);color:#fff}
+.step.err .ic{background:var(--grave);color:#fff}
+.step.skip .ic{background:var(--line);color:var(--muted)}
+.step small{color:var(--muted)}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.step.run .ic{animation:none}.fresh{animation:none!important}}
+/* placar + termômetro */
+.score{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.tile b{display:block;font:800 30px/1 var(--display);font-variant-numeric:tabular-nums}
+.tile span{font-size:13px;color:var(--muted)}
+.tile.g b{color:var(--grave)} .tile.p b{color:var(--accent)}
+.thermo{display:grid;gap:10px}
+.bar{position:relative;height:22px;border-radius:999px;background:linear-gradient(90deg,var(--ok) 0%,#c9b23a 30%,var(--accent) 60%,var(--grave) 100%)}
+.needle{position:absolute;top:-8px;width:4px;height:38px;background:var(--ink);border-radius:2px;transform:translateX(-2px);transition:left .8s ease}
+.scale{display:grid;grid-template-columns:repeat(5,1fr);font-size:12px;color:var(--muted)}
+.scale span{text-align:center}
+.verdict{font:800 28px/1.1 var(--display)}
+.verdict small{display:block;font:500 14px var(--body);color:var(--muted);margin-top:4px}
+/* tabela */
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:760px}
+th{font:600 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:left;padding:12px;border-bottom:1px solid var(--line);background:var(--soft);position:sticky;top:0}
+td{padding:12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.when{white-space:nowrap;font-variant-numeric:tabular-nums}
+td.when b{display:block}
+td.txt{max-width:430px}
+td.txt strong{color:var(--grave)}
+.chip{display:inline-block;font:700 11px/1 var(--mono);padding:5px 8px;border-radius:999px;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+.chip.grave{background:color-mix(in srgb,var(--grave) 16%,transparent);color:var(--grave)}
+.chip.paspalho{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent)}
+.you{display:inline-block;margin-top:6px;font:700 11px var(--mono);color:#fff;background:var(--grave);padding:3px 6px;border-radius:4px}
+.fresh{animation:pop .5s ease}
+@keyframes pop{from{background:color-mix(in srgb,var(--accent) 22%,transparent)}to{background:transparent}}
+a{color:inherit}
+td a{font-weight:600}
+/* análise */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+ul.clean{margin:8px 0 0;padding-left:20px} ul.clean li{margin:6px 0}
+.bars{display:grid;gap:6px;margin-top:10px}
+.brow{display:grid;grid-template-columns:110px 1fr 34px;gap:8px;align-items:center;font-size:13px}
+.btrack{height:10px;background:var(--soft);border-radius:6px;overflow:hidden}
+.bfill{height:100%;background:var(--accent);border-radius:6px}
+.brow em{font-style:normal;font-variant-numeric:tabular-nums;color:var(--muted);text-align:right}
+.badge-ex{font:700 11px var(--mono);background:var(--ink);color:var(--paper);padding:4px 8px;border-radius:4px;letter-spacing:.08em}
+details summary{cursor:pointer;font-weight:600}
+.foot{font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+@media (max-width:720px){.score{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="kicker">Laudo de comportamento público online</div>
+    <h1>Paspalhô<span>metro</span></h1>
+    <p class="lede">Coloque o nome e as redes de quem você quer investigar. A página busca no Google, nos perfis públicos e em processos, mostra onde está procurando e monta o laudo enquanto acha.</p>
+  </header>
+
+  <section class="card">
+    <form id="f">
+      <div>
+        <label for="alvo">Quem você quer investigar?</label>
+        <textarea id="alvo" placeholder="Fulano de Tal; https://www.threads.com/@fulano; @fulano; linkedin.com/in/fulano"></textarea>
+        <div class="hint">Nome completo e/ou links e @ das redes sociais. Separe cada um com <b>vírgula</b> ou <b>ponto e vírgula</b>.</div>
+      </div>
+      <div>
+        <label for="vitima">Quer saber se essa pessoa já xingou você? Coloque suas redes aqui</label>
+        <input type="text" id="vitima" placeholder="@seuperfil; seu nome; sua empresa">
+        <div class="hint">Opcional. Em branco, a investigação segue o padrão e procura agressividade contra qualquer pessoa.</div>
+      </div>
+      <div class="row">
+        <label class="check"><input type="checkbox" id="proc" checked> Buscar processos judiciais públicos</label>
+        <label class="check"><input type="checkbox" id="fundo"> Investigação completa (mais buscas, demora mais)</label>
+      </div>
+      <div class="row">
+        <button class="btn" id="go" type="submit">Investigar paspalho</button>
+        <label class="btn ghost" for="imp" id="imp-lbl">Importar varredura do Claude Code</label>
+        <button type="button" class="btn ghost" id="parar" hidden disabled>Parar pesquisa</button>
+        <input type="file" id="imp" accept="application/json,.json" hidden>
+        <span class="status" id="avail">Conferindo o que esta página consegue usar…</span>
+      </div>
+    </form>
+  </section>
+
+  <section id="conectar" class="card" hidden>
+    <div class="kicker">Falta 1 passo · uns 3 minutos</div>
+    <h2 style="margin-top:6px">Conecte o Firecrawl pra investigar</h2>
+    <p class="lede">A página busca no Google e lê os perfis pelo Firecrawl, que é grátis até 1.000 páginas por mês. Conecte uma vez e serve pra sempre.</p>
+    <ol class="steps">
+      <li>Crie sua conta em <a href="https://www.firecrawl.dev/app/api-keys" target="_blank" rel="noopener">firecrawl.dev</a> e copie a sua <b>API key</b> (começa com <code>fc-</code>).</li>
+      <li>Cole aqui pra eu montar o endereço do conector. A chave fica só nesta tela e não é salva.
+        <div class="row" style="margin-top:8px"><input type="text" id="fckey" placeholder="fc-..." autocomplete="off" style="max-width:340px"><button type="button" class="btn ghost" id="fccopy">Copiar endereço</button></div>
+        <code id="fcurl" class="url">https://mcp.firecrawl.dev/SUA_API_KEY/v2/mcp</code>
+      </li>
+      <li>No claude.ai, vá em <b>Configurações → Conectores → Adicionar conector personalizado</b>.</li>
+      <li>Em <b>Nome</b> escreva <b>Firecrawl</b>, exatamente assim. Em <b>URL</b> cole o endereço. Deixe os campos de OAuth em branco e salve.</li>
+      <li>Volte aqui e recarregue a página. Na primeira investigação, o claude.ai vai pedir sua permissão pra página usar o conector.</li>
+    </ol>
+    <p class="hint">No plano gratuito do Claude dá pra adicionar 1 conector personalizado. Enquanto isso, o botão "Importar varredura do Claude Code" já funciona.</p>
+  </section>
+
+  <section id="logbox" class="card" hidden>
+    <h3>Onde estou procurando</h3>
+    <div id="log" style="margin-top:12px"></div>
+  </section>
+
+  <section id="laudo" style="display:grid;gap:22px">
+    <div class="row" style="justify-content:space-between">
+      <div>
+        <div class="kicker" id="l-kicker">Exemplo fictício</div>
+        <h2 id="l-title">@exemplo_ficticio</h2>
+      </div>
+      <span class="badge-ex" id="l-badge">EXEMPLO</span>
+    </div>
+
+    <div class="score">
+      <div class="tile g"><b id="s-g">0</b><span>graves</span></div>
+      <div class="tile p"><b id="s-p">0</b><span>paspalhadas</span></div>
+      <div class="tile"><b id="s-l">0</b><span>textos dele lidos</span></div>
+      <div class="tile"><b id="s-r">0%</b><span>do que escreve é agressivo</span></div>
+    </div>
+
+    <div class="card thermo">
+      <div class="row" style="justify-content:space-between">
+        <h3>Termômetro de paspalhice</h3>
+        <span class="status" id="t-num">0 / 100</span>
+      </div>
+      <div class="bar" role="img" id="t-bar" aria-label="Nível de paspalho"><div class="needle" id="needle" style="left:0%"></div></div>
+      <div class="scale"><span>Gente boa</span><span>Resmungão</span><span>Paspalho</span><span>Paspalhão</span><span>PASPALHO-MOR</span></div>
+      <div class="verdict" id="verdict">—<small></small></div>
+    </div>
+
+    <div>
+      <div class="row" style="justify-content:space-between;margin-bottom:10px">
+        <h2>O que ele escreveu</h2>
+        <span class="status" id="t-count"></span>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Quando</th><th>Rede</th><th>Comentário</th><th>Contra quem</th><th>Nível</th><th></th></tr></thead>
+          <tbody id="tb"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card"><h3>Padrão</h3><ul class="clean" id="padrao"></ul></div>
+      <div class="card"><h3>Alvos</h3><div class="bars" id="alvos"></div></div>
+      <div class="card"><h3>Quando ele ataca</h3><div class="bars" id="dias"></div><div class="bars" id="periodos" style="margin-top:14px"></div></div>
+      <div class="card"><h3>Temas</h3><div class="bars" id="temas"></div></div>
+    </div>
+
+    <div class="card" id="voce-card"><h3>Sobre você</h3><p id="voce" style="margin:8px 0 0"></p></div>
+
+    <div class="card" id="proc-card"><h3>Processos judiciais públicos</h3><p class="hint">Resultado de busca por nome. Nome igual não é pessoa igual: confira cada um antes de usar.</p><ul class="clean" id="procs"></ul></div>
+
+    <div class="card"><h3>Considerações</h3><ul class="clean" id="consid"></ul></div>
+
+    <details class="card"><summary>Onde procurei</summary><div class="tablewrap" style="margin-top:12px"><table style="min-width:0"><thead><tr><th>Fonte</th><th>Itens</th><th>Status</th></tr></thead><tbody id="fontes"></tbody></table></div></details>
+
+    <p class="foot">Só conteúdo público. O laudo mostra o que a pessoa escreveu, onde e contra quem; não entra vida privada, endereço, família, nem tentativa de descobrir quem está por trás de perfis anônimos. Comentário pode ser apagado a qualquer momento: se algum virar caso, preserve já (print com URL e data visíveis, ou ata notarial/Verifact). Nada aqui é parecer jurídico.</p>
+  </section>
+</main>
+
+<script>
+/* ====== Instruções da skill /paspalho embutidas (vão no prompt do Claude) ====== */
+const CRITERIO = `
+CRITÉRIO DE TRIAGEM (skill /paspalho). A pergunta-chave: o texto ataca a IDEIA ou ataca a PESSOA?
+Discordar, opinar forte sobre política, reality show ou trabalho é direito de qualquer um. Paspalho é quem troca o argumento por rebaixamento.
+O alvo pode ser QUALQUER pessoa ou grupo: outro usuário, celebridade, participante de reality, eleitores, mulheres.
+
+GRAVE (candidato a medida): xingamento direto (burra, idiota, lixo, fdp, vagabunda...), ataque à inteligência ou ao caráter
+("você não tem capacidade de entender nada", "gente sem caráter", "QI de planta"), desumanização ("animal", "esse ser"),
+ofensa sexual ou racial, ameaça mesmo velada, desejo de mal ("tomara que se dê mal", "merecia apanhar"),
+acusação de crime sem prova, exposição de dado pessoal, campanha (mesmo autor batendo várias vezes no mesmo alvo).
+
+PASPALHO (deboche e rebaixamento): "cala a boca", "vergonha alheia", "vai procurar o que fazer", "Deus me livre" no lugar de argumento,
+infantilização ("menina", "mocinha", "querida" irônico, "amigo" condescendente), rótulo pejorativo (guru, coach de palco, chata),
+deboche de quem segue/defende o alvo ("e tem gente que paga"), ironia que só funciona rebaixando.
+Exemplo-âncora de paspalho (inventado): "ontem era confeiteira, hoje é especialista em finanças. Essa menina nunca abriu uma planilha, e ainda tem gente que compra. Me poupe."
+
+NÃO ENTRA: opinião forte sem ataque à pessoa, piada inofensiva, elogio, conversa normal, sarcasmo a favor do alvo.
+Dúvida entre grave e paspalho: paspalho. Dúvida entre paspalho e nada: se tirando o ataque sobra argumento, não entra.
+HOMÔNIMOS: nome igual não é pessoa igual. Só conte textos claramente escritos pela pessoa investigada (o @ dela, ou perfil confirmado).
+NUNCA invente nem parafraseie: o texto é copiado literal do material, com a URL que leva até ele.
+LIMITES: só conteúdo público; o laudo é do comportamento (o que escreveu, onde, contra quem), não da vida privada; não identificar quem está por trás de perfis anônimos.`;
+
+const FUNIL = `
+MÉTODO (funil da skill /paspalho, modo suspeito): varredura ampla → onde aparecer sinal de agressividade, aprofundar:
+sinal numa REDE → esgotar aquela rede; sinal numa CONTA (ele ataca repetidamente nos posts de @x) → mais posts daquela conta e a mesma conta nas outras redes;
+sinal num TEMA (reality, política, futebol...) → outras contas do mesmo tema. Máximo 3 rodadas. "Não achei" só vale com o tamanho do que foi lido.`;
+
+/* ====== utilidades ====== */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const link = u => /^https?:\/\//i.test(String(u || "")) ? esc(u) : "#"; // só http(s): barra javascript: vindo de texto coletado
+const DIAS = ["domingo","segunda","terça","quarta","quinta","sexta","sábado"];
+const LEX = ["burra","burro","burras","burros","idiota","idiotas","lixo","nojento","nojenta","mal caráter","mau caráter","mal-caráter","sem caráter","cala a boca","cale a boca","burrice","fdp","otário","otária","escroto","escrota","covarde","animal","ignorante","podre","imbecil","retardad","vagabund","puta","merda","desonest","insuportável","palhaço","palhaça","ridícul","patétic","fracassad","inútil","verme","energúmen"];
+let mcpNS = null, sampleNS = null, FC = null;
+const S = {rows: [], lidos: 0, fontes: [], procs: [], analise: null, alvo: "", vitima: "", exemplo: true};
+
+function boldify(text, terms){
+  const t = String(text || "");
+  const all = [...new Set([...(terms || []), ...LEX].filter(x => x && x.length > 2))].sort((a,b) => b.length - a.length);
+  const low = t.toLowerCase(), marks = new Array(t.length).fill(false);
+  for (const w of all){
+    const lw = w.toLowerCase(); let i = low.indexOf(lw);
+    while (i >= 0){ for (let k = i; k < i + lw.length; k++) marks[k] = true; i = low.indexOf(lw, i + lw.length); }
+  }
+  let out = "", on = false;
+  for (let i = 0; i < t.length; i++){
+    if (marks[i] && !on){ out += "<strong>"; on = true; }
+    if (!marks[i] && on){ out += "</strong>"; on = false; }
+    out += esc(t[i]);
+  }
+  return on ? out + "</strong>" : out;
+}
+function quando(r){
+  const iso = r.quando_iso;
+  if (iso){
+    const d = new Date(String(iso).replace(" ", "T"));
+    if (!isNaN(d)){
+      const hasTime = /\d{2}:\d{2}/.test(iso);
+      return `<b>${DIAS[d.getDay()]}</b>${d.toLocaleDateString("pt-BR")}${hasTime ? " às " + String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0") : ""}`;
+    }
+  }
+  return `<b>—</b>${esc(r.quando_texto || "sem data")}`;
+}
+function periodo(h){ return h < 6 ? "madrugada" : h < 12 ? "manhã" : h < 18 ? "tarde" : "noite"; }
+
+/* ====== render ====== */
+function rowHTML(r, fresh){
+  return `<tr class="${fresh ? "fresh" : ""}">
+    <td class="when">${quando(r)}</td>
+    <td>${esc(r.rede || "")}</td>
+    <td class="txt">${boldify(r.texto, r.xingamentos)}${r.sobre_vitima ? '<br><span class="you">CONTRA VOCÊ</span>' : ""}</td>
+    <td>${esc(r.alvo || "")}${r.tema ? `<br><small class="status">${esc(r.tema)}</small>` : ""}</td>
+    <td><span class="chip ${r.nivel === "grave" ? "grave" : "paspalho"}">${r.nivel === "grave" ? "grave" : "paspalho"}</span></td>
+    <td>${r.url ? `<a href="${link(r.url)}" target="_blank" rel="noopener">abrir</a>` : ""}</td></tr>`;
+}
+function sortRows(){
+  S.rows.sort((a,b) => (a.nivel === "grave" ? 0 : 1) - (b.nivel === "grave" ? 0 : 1) || String(b.quando_iso || "").localeCompare(String(a.quando_iso || "")));
+}
+function addRows(list){
+  const tb = $("#tb");
+  for (const r of list){ S.rows.push(r); tb.insertAdjacentHTML("afterbegin", rowHTML(r, true)); }
+  placar();
+}
+function bars(el, counts, max){
+  const ent = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, max || 8);
+  const top = Math.max(1, ...ent.map(e => e[1]));
+  el.innerHTML = ent.length ? ent.map(([k,v]) => `<div class="brow"><span>${esc(k)}</span><div class="btrack"><div class="bfill" style="width:${(100*v/top).toFixed(0)}%"></div></div><em>${v}</em></div>`).join("") : '<span class="status">Sem dados suficientes.</span>';
+}
+function termometro(){
+  const g = S.rows.filter(r => r.nivel === "grave").length, p = S.rows.length - g;
+  // quantidade, não proporção: 20 graves pesam mesmo num histórico de 1000 posts.
+  // grave vale 2, paspalhada vale 1; o que tem mais de 5 anos vale metade.
+  // 1 grave recente ≈ 15, 5 graves recentes ≈ 60, 20 graves recentes ≈ 96.
+  const cinco = Date.now() - 5 * 365.25 * 864e5;
+  const peso = S.rows.reduce((t, r) => {
+    const d = r.quando_iso ? new Date(String(r.quando_iso).replace(" ", "T")) : null;
+    const velho = d && !isNaN(d) && d.getTime() < cinco;
+    return t + (r.nivel === "grave" ? 2 : 1) * (velho ? 0.5 : 1);
+  }, 0);
+  let score = Math.round(100 * (1 - Math.exp(-peso / 12)));
+  if (S.rows.length < 3) score = Math.min(score, 30);
+  const niveis = [[15,"Gente boa","Nenhum padrão de agressividade no que foi lido."],[35,"Resmungão","Escorrega às vezes, sem padrão de ataque."],[55,"Paspalho","Rebaixa os outros com frequência."],[75,"Paspalhão","Agressividade é parte do jeito dele de conversar."],[101,"PASPALHO-MOR","Ataca pessoas de forma recorrente e grave."]];
+  const [, nome, desc] = niveis.find(n => score < n[0]);
+  $("#needle").style.left = score + "%";
+  $("#t-num").textContent = score + " / 100";
+  $("#t-bar").setAttribute("aria-label", `Nível ${nome}, ${score} de 100`);
+  $("#verdict").innerHTML = `${esc(nome)}<small>${esc(desc)} ${S.rows.length < 3 ? "Pouco material lido: o termômetro fica travado até 30." : ""}</small>`;
+}
+function placar(){
+  const g = S.rows.filter(r => r.nivel === "grave").length, p = S.rows.length - g;
+  const total = Math.max(S.lidos, S.rows.length);
+  $("#s-g").textContent = g; $("#s-p").textContent = p; $("#s-l").textContent = total;
+  $("#s-r").textContent = total ? Math.round(100 * S.rows.length / total) + "%" : "0%";
+  $("#t-count").textContent = S.rows.length ? `${S.rows.length} comentários agressivos` : "";
+  termometro();
+}
+function analiseLocal(){
+  const dias = {}, per = {}, temas = {}, alvos = {};
+  for (const r of S.rows){
+    if (r.quando_iso){
+      const d = new Date(String(r.quando_iso).replace(" ", "T"));
+      if (!isNaN(d)){
+        dias[DIAS[d.getDay()]] = (dias[DIAS[d.getDay()]] || 0) + 1;
+        if (/\d{2}:\d{2}/.test(r.quando_iso)) per[periodo(d.getHours())] = (per[periodo(d.getHours())] || 0) + 1;
+      }
+    }
+    if (r.tema) temas[r.tema] = (temas[r.tema] || 0) + 1;
+    if (r.alvo) alvos[r.alvo] = (alvos[r.alvo] || 0) + 1;
+  }
+  bars($("#dias"), dias, 7); bars($("#periodos"), per, 4); bars($("#temas"), temas, 6); bars($("#alvos"), alvos, 8);
+}
+function renderTudo(){
+  sortRows();
+  $("#tb").innerHTML = S.rows.map(r => rowHTML(r, false)).join("") || '<tr><td colspan="6" class="status">Nenhum comentário agressivo encontrado no que foi lido.</td></tr>';
+  placar(); analiseLocal();
+  const A = S.analise || {};
+  $("#padrao").innerHTML = (A.padrao || []).map(x => `<li>${esc(x)}</li>`).join("") || "<li>Sem padrão: pouco material agressivo.</li>";
+  $("#voce").textContent = A.sobre_voce || (S.vitima ? "Nada encontrado contra você no que foi lido." : "Você não informou suas redes, então a busca foi pela agressividade dele contra qualquer pessoa.");
+  $("#consid").innerHTML = (A.consideracoes || []).map(x => `<li>${esc(x)}</li>`).join("") || "<li>—</li>";
+  $("#procs").innerHTML = (S.procs.length ? S.procs.map(p => `<li><a href="${link(p.url)}" target="_blank" rel="noopener">${esc(p.titulo || p.url)}</a>${p.nota ? ` <span class="status">· ${esc(p.nota)}</span>` : ""}</li>`).join("") : "<li>Nenhum processo encontrado pelo nome (ou busca desligada).</li>");
+  $("#fontes").innerHTML = S.fontes.map(f => `<tr><td>${esc(f.fonte)}</td><td>${f.itens ?? "—"}</td><td>${esc(f.status + (f.obs ? " · " + f.obs : ""))}</td></tr>`).join("");
+}
+
+/* ====== log ao vivo ====== */
+function step(txt){
+  $("#logbox").hidden = false;
+  const el = document.createElement("div");
+  el.className = "step run"; el.innerHTML = `<span class="ic" aria-hidden="true"></span><span>${esc(txt)} <small></small></span>`;
+  $("#log").appendChild(el);
+  return {
+    ok(d){ el.className = "step ok"; el.querySelector(".ic").textContent = "✓"; if (d) el.querySelector("small").textContent = "· " + d; },
+    err(d){ el.className = "step err"; el.querySelector(".ic").textContent = "!"; if (d) el.querySelector("small").textContent = "· " + d; },
+    skip(d){ el.className = "step skip"; el.querySelector(".ic").textContent = "–"; if (d) el.querySelector("small").textContent = "· " + d; },
+  };
+}
+
+/* ====== Firecrawl via conector ====== */
+function unwrap(p){
+  if (p && typeof p === "object" && "payload" in p) p = p.payload;
+  if (p && Array.isArray(p.content)){
+    const t = p.content.map(c => c.text || "").join("\n");
+    try { return JSON.parse(t); } catch { return t; }
+  }
+  if (typeof p === "string"){ try { return JSON.parse(p); } catch { return p; } }
+  return p;
+}
+async function fc(tool, input){
+  const servers = FC ? [FC] : ["Firecrawl", "host:firecrawl"];
+  let last;
+  for (const sv of servers){
+    try { const r = await mcpNS.callTool(sv, tool, input); FC = sv; return unwrap(r); }
+    catch (e){ last = e; if (["server_not_connected","not_granted","unknown_server"].includes(e?.code)) continue; throw e; }
+  }
+  throw last || new Error("Firecrawl indisponível");
+}
+function links(o, out = []){
+  if (!o || typeof o !== "object") return out;
+  if (Array.isArray(o)){ o.forEach(x => links(x, out)); return out; }
+  if (typeof o.url === "string" && (o.title || o.description || o.snippet)) out.push({url: o.url, title: o.title || "", desc: o.description || o.snippet || ""});
+  Object.values(o).forEach(v => { if (v && typeof v === "object") links(v, out); });
+  return out;
+}
+function markdown(o){
+  if (typeof o === "string") return o;
+  let found = "";
+  (function walk(x){ if (found || !x || typeof x !== "object") return; if (typeof x.markdown === "string"){ found = x.markdown; return; } Object.values(x).forEach(walk); })(o);
+  return found;
+}
+const OBJ = "Levantar o que uma pessoa escreve publicamente nas redes sociais, para documentar comentários agressivos (investigação de comportamento público).";
+async function buscar(q){ return links(await fc("firecrawl_search", {query: q, limit: 8, objective: OBJ})); }
+async function ler(url){ return markdown(await fc("firecrawl_scrape", {url, formats: ["markdown"], onlyMainContent: true, objective: OBJ})).slice(0, 18000); }
+
+/* ====== entradas ====== */
+function parseAlvo(s){
+  const out = {nomes: [], handles: new Set(), urls: []};
+  for (let part of s.split(/[;,\n]+/).map(x => x.trim()).filter(Boolean)){
+    if (/^(https?:\/\/|www\.|[a-z0-9-]+\.(com|net|br)\/)/i.test(part)){
+      const url = part.startsWith("http") ? part : "https://" + part;
+      out.urls.push(url);
+      const m = url.match(/(?:instagram\.com|threads\.(?:com|net)|x\.com|twitter\.com|tiktok\.com)\/@?([A-Za-z0-9._]+)/i);
+      if (m && !["p","reel","post","status","explore"].includes(m[1])) out.handles.add(m[1]);
+      const li = url.match(/linkedin\.com\/in\/([^/?#]+)/i); if (li) out.handles.add(li[1]);
+    } else if (part.startsWith("@")) out.handles.add(part.slice(1));
+    else out.nomes.push(part);
+  }
+  out.handles = [...out.handles];
+  return out;
+}
+
+/* ====== Claude ====== */
+async function classificar(material, ctx){
+  const hoje = new Date().toISOString().slice(0, 10);
+  const prompt = `${CRITERIO}
+${FUNIL}
+
+PESSOA INVESTIGADA: ${ctx.quem}
+${ctx.vitima ? `VÍTIMA (quem pediu o laudo): ${ctx.vitima}. Marque sobre_vitima=true quando o alvo do texto for essa pessoa, empresa ou perfil.` : "Sem vítima informada: procure agressividade contra qualquer pessoa."}
+HOJE: ${hoje} (use para converter datas relativas como "3d", "2 sem").
+
+MATERIAL PÚBLICO COLETADO (cada bloco começa com FONTE e URL):
+${material}
+
+Responda SOMENTE com JSON:
+{"total_textos_da_pessoa": <quantos textos ESCRITOS PELA PESSOA aparecem no material, agressivos ou não>,
+ "itens":[{"texto":"literal, copiado do material","url":"link mais específico que o material der","rede":"threads|instagram|x|linkedin|tiktok|youtube|facebook|web",
+   "quando_iso":"AAAA-MM-DDTHH:MM ou AAAA-MM-DD ou null","quando_texto":"como o material mostra a data","nivel":"grave|paspalho",
+   "alvo":"quem foi atacado","tema":"reality|politica|futebol|relacionamento|trabalho|outro","motivo":"1 frase citando o trecho que pesa",
+   "xingamentos":["trechos exatos ofensivos dentro do texto"],"sobre_vitima":false}]}
+Inclua só textos escritos pela pessoa investigada e classificados como grave ou paspalho.`;
+  const r = await sampleNS.json(prompt, {modelTier: "default"});
+  return r || {itens: []};
+}
+async function analisar(ctx){
+  const compact = S.rows.slice(0, 160).map(r => `[${r.nivel}] ${r.quando_iso || r.quando_texto || ""} ${r.rede} → ${r.alvo} (${r.tema}): ${String(r.texto).slice(0, 180)}`).join("\n");
+  const prompt = `${CRITERIO}
+
+Você escreve a parte analítica de um laudo do Paspalhômetro sobre ${ctx.quem}.
+Textos agressivos encontrados (${S.rows.length} de ${Math.max(S.lidos, S.rows.length)} textos dele lidos):
+${compact || "(nenhum)"}
+${ctx.vitima ? `Quem pediu o laudo: ${ctx.vitima}.` : ""}
+Processos achados por nome (podem ser homônimos): ${JSON.stringify(S.procs.slice(0, 12))}
+Fontes: ${JSON.stringify(S.fontes)}
+
+Responda SOMENTE com JSON:
+{"padrao":["4 a 7 frases curtas com números: proporção agressiva, assinatura verbal (as expressões que ele repete), temas, alvos preferenciais (gênero, grupos), reincidência, quando ataca (dia da semana e horário, se houver), diferença entre redes"],
+ "sobre_voce":"${ctx.vitima ? "1 a 2 frases: se e como a pessoa que pediu aparece como alvo, com o tamanho do que foi lido" : "1 frase dizendo que a busca foi geral"}",
+ "consideracoes":["3 a 5 frases: limites do que foi lido (o que ficou de fora), cautela com homônimos e processos, o que preservar se virar caso, próximo passo de aprofundamento sugerido"],
+ "processos":[{"titulo":"...","url":"...","nota":"provável mesma pessoa | possível homônimo | sem relação"}]}
+Sem inventar números: use só o que está acima.`;
+  return await sampleNS.json(prompt, {modelTier: "default"});
+}
+
+/* ====== investigação ====== */
+async function investigar(e){
+  e.preventDefault();
+  const raw = $("#alvo").value.trim();
+  if (!raw){ $("#alvo").focus(); return; }
+  if (window.__PASPALHO_LOCAL) return investigarLocal(raw);
+  if (!sampleNS){ $("#avail").textContent = "Esta página precisa da permissão de usar o Claude. Abra pelo claude.ai e aceite o pedido."; return; }
+  const btn = $("#go"); btn.disabled = true; btn.textContent = "Investigando…";
+  Object.assign(S, {rows: [], lidos: 0, fontes: [], procs: [], analise: null, exemplo: false, vitima: $("#vitima").value.trim()});
+  $("#log").innerHTML = ""; $("#tb").innerHTML = "";
+  const alvo = parseAlvo(raw);
+  const nome = alvo.nomes[0] || "";
+  const quem = [nome, ...alvo.handles.map(h => "@" + h)].filter(Boolean).join(" / ");
+  S.alvo = quem;
+  $("#l-kicker").textContent = "Laudo de " + new Date().toLocaleDateString("pt-BR");
+  $("#l-title").textContent = quem; $("#l-badge").textContent = "AO VIVO";
+  const fundo = $("#fundo").checked;
+  const blocos = [];
+  const add = (fonte, url, texto) => { if (texto && texto.trim()) blocos.push({fonte, url, texto}); };
+
+  try {
+    const s0 = step(`Entendi: ${alvo.nomes.length} nome(s), ${alvo.handles.length} @, ${alvo.urls.length} link(s)`); s0.ok();
+    if (!mcpNS){ step("Busca na web").err("Firecrawl não conectado"); pedirConector(); throw new Error("sem mcp"); }
+    try { await fc("firecrawl_search", {query: "teste", limit: 1, objective: OBJ}); }
+    catch (err){
+      if (["server_not_connected","unknown_server","not_granted"].includes(err?.code) || !FC){
+        step("Busca na web").err(err?.code === "not_granted" ? "permissão negada pro conector" : "Firecrawl não conectado no seu claude.ai");
+        pedirConector(err?.code === "not_granted" ? "Você recusou o uso do conector. Recarregue a página e aceite pra investigar." : undefined);
+        throw new Error("sem mcp");
+      }
+    }
+
+    // 1. Mapa dos perfis
+    const st1 = step(`Mapeando perfis de ${quem} no Google`);
+    const perfis = new Set(alvo.urls);
+    const qs1 = [];
+    if (nome) qs1.push(`"${nome}" (instagram OR threads OR linkedin OR twitter OR tiktok)`);
+    for (const h of alvo.handles.slice(0, 3)) qs1.push(`"${h}"`);
+    let n1 = 0;
+    for (const q of qs1){
+      for (const l of await buscar(q)){
+        n1++;
+        if (/(threads\.(com|net)|x\.com|twitter\.com|instagram\.com|linkedin\.com\/in|tiktok\.com)\/@?[A-Za-z0-9._-]+\/?$/i.test(l.url) && alvo.handles.some(h => l.url.toLowerCase().includes(h.toLowerCase()))) perfis.add(l.url);
+        add("Google: " + q, l.url, `${l.title}\n${l.desc}`);
+      }
+    }
+    for (const h of alvo.handles) perfis.add(`https://x.com/${h}`);
+    st1.ok(`${n1} resultados · ${perfis.size} perfis encontrados`); S.fontes.push({fonte: "Google — mapa de perfis", itens: n1, status: "ok"});
+
+    // 2. Perfis públicos. O Firecrawl recusa Instagram, Threads, Facebook e TikTok ("we do not support
+    // this site"): dessas redes só entra o que o Google mostra (passo 3). No X ele lê só os ~5 posts
+    // mais recentes, e cada leitura custa 30 créditos.
+    const NAO_LE = /(instagram\.com|threads\.(com|net)|facebook\.com|tiktok\.com)/i;
+    for (const url of [...perfis].filter(u => NAO_LE.test(u))){
+      step(`Perfil ${url.replace(/^https?:\/\/(www\.)?/, "")}`).skip("o Firecrawl não lê essa rede; entra só o que o Google mostra dela");
+      S.fontes.push({fonte: url, itens: null, status: "pulado", obs: "o Firecrawl não lê essa rede"});
+    }
+    for (const url of [...perfis].filter(u => !NAO_LE.test(u)).slice(0, fundo ? 8 : 4)){
+      const st = step(`Lendo ${url.replace(/^https?:\/\/(www\.)?/, "")}`);
+      try {
+        const md = await ler(url);
+        if (/log in|entrar|sign in|faça login/i.test(md.slice(0, 600)) && md.length < 1500){ st.skip("pede login: só o Claude Code com Chrome logado lê isso"); S.fontes.push({fonte: url, itens: null, status: "precisa login"}); continue; }
+        add("Perfil público", url, md); st.ok(`${Math.round(md.length / 1000)} mil caracteres`); S.fontes.push({fonte: url, itens: null, status: "ok"});
+      } catch (err){
+        const msg = String(err?.message || err || "");
+        if (/enrichment is not enabled/i.test(msg)){ st.skip("o Firecrawl só lê perfil de pessoa no LinkedIn com o 'enrichment' ligado (firecrawl.dev/app/alexandria)"); S.fontes.push({fonte: url, itens: null, status: "pulado", obs: "LinkedIn: ligar enrichment no Firecrawl"}); }
+        else if (/do not support this site/i.test(msg)){ st.skip("o Firecrawl não lê esse site"); S.fontes.push({fonte: url, itens: null, status: "pulado", obs: "o Firecrawl não lê esse site"}); }
+        else { st.err(msg || "falhou"); S.fontes.push({fonte: url, itens: null, status: "falhou"}); }
+      }
+    }
+
+    // 3. Google atrás de agressividade
+    const termos = `(burra OR burro OR "mal caráter" OR idiota OR lixo OR "cala a boca" OR otário OR escroto)`;
+    const qs3 = [];
+    for (const h of alvo.handles.slice(0, 2)){
+      qs3.push(`site:threads.com "${h}" ${termos}`, `site:instagram.com "${h}"`, `site:x.com "${h}"`, `"@${h}" ${termos}`);
+      if (fundo) qs3.push(`site:threads.com "${h}"`, `site:reddit.com "${h}"`, `site:tiktok.com "${h}"`);
+    }
+    if (nome) qs3.push(`"${nome}" ${termos}`, `"${nome}" (xingou OR ofendeu OR agrediu OR ataque OR polêmica)`);
+    if (S.vitima) for (const v of S.vitima.split(/[;,]+/).map(x => x.trim()).filter(Boolean).slice(0, 3)) for (const h of (alvo.handles.length ? alvo.handles.slice(0,2) : [nome])) qs3.push(`"${h}" "${v.replace(/^@/, "")}"`);
+    for (const q of qs3){
+      const st = step(`Google: ${q}`);
+      try { const L = await buscar(q); L.forEach(l => add("Google: " + q, l.url, `${l.title}\n${l.desc}`)); st.ok(`${L.length} resultados`); S.fontes.push({fonte: "Google: " + q, itens: L.length, status: "ok"}); }
+      catch (err){ st.err(err?.message || "falhou"); }
+    }
+
+    // 4. Processos
+    if ($("#proc").checked && nome){
+      const st = step(`Processos judiciais públicos de "${nome}"`);
+      const P = [...await buscar(`"${nome}" site:jusbrasil.com.br`), ...await buscar(`"${nome}" processo (escavador OR tjsp OR tjrj OR trf OR "diário oficial")`)];
+      const seen = new Set();
+      S.procs = P.filter(p => !seen.has(p.url) && seen.add(p.url) && /jusbrasil|escavador|tj[a-z]{2}|trf|jus\.br|diario|processo/i.test(p.url + p.title)).map(p => ({titulo: p.title, url: p.url, nota: ""}));
+      st.ok(`${S.procs.length} resultados (podem ser homônimos)`); S.fontes.push({fonte: "Processos (Jusbrasil, Escavador, tribunais)", itens: S.procs.length, status: "ok"});
+    }
+
+    // 5. Classificação em lotes, montando a tabela ao vivo
+    const lotes = []; let cur = "";
+    for (const b of blocos){
+      const piece = `\n=== FONTE: ${b.fonte}\nURL: ${b.url}\n${b.texto}\n`;
+      if ((cur + piece).length > 15000 && cur){ lotes.push(cur); cur = ""; }
+      cur += piece.slice(0, 15000);
+    }
+    if (cur) lotes.push(cur);
+    for (let i = 0; i < lotes.length; i++){
+      const st = step(`Claude lendo e classificando o lote ${i + 1} de ${lotes.length}`);
+      try {
+        const r = await classificar(lotes[i], {quem, vitima: S.vitima});
+        S.lidos += Number(r.total_textos_da_pessoa) || 0;
+        const itens = (r.itens || []).filter(x => x && x.texto && (x.nivel === "grave" || x.nivel === "paspalho"));
+        const novos = itens.filter(x => !S.rows.some(y => y.texto === x.texto));
+        addRows(novos); analiseLocal();
+        st.ok(`${novos.length} agressivos em ${r.total_textos_da_pessoa ?? "?"} textos dele`);
+      } catch (err){
+        st.err(err?.code === "rate_limited" ? "limite de uso do Claude; tente daqui a pouco" : (err?.message || "falhou"));
+        if (err?.code === "rate_limited" || err?.code === "not_granted") break;
+      }
+    }
+
+    // 6. Aprofundamento: conta e tema quentes (1 rodada extra no modo completo)
+    if (fundo && S.rows.length){
+      const cont = {}; S.rows.forEach(r => { const m = String(r.alvo || "").match(/@[A-Za-z0-9._]+/); if (m) cont[m[0]] = (cont[m[0]] || 0) + 1; });
+      const quentes = Object.entries(cont).sort((a,b) => b[1] - a[1]).filter(e => e[1] >= 2).slice(0, 3).map(e => e[0]);
+      if (quentes.length){
+        const st = step(`Aprofundando nas contas onde ele mais ataca: ${quentes.join(", ")}`);
+        let extra = "";
+        for (const c of quentes) for (const h of alvo.handles.slice(0, 1)){
+          for (const l of await buscar(`"${h}" "${c.slice(1)}"`)) extra += `\n=== FONTE: aprofundamento ${c}\nURL: ${l.url}\n${l.title}\n${l.desc}\n`;
+        }
+        if (extra){ const r = await classificar(extra.slice(0, 15000), {quem, vitima: S.vitima}); const novos = (r.itens || []).filter(x => x?.texto && !S.rows.some(y => y.texto === x.texto)); addRows(novos); st.ok(`${novos.length} novos`); }
+        else st.skip("nada novo");
+      }
+    }
+
+    // 7. Análise final
+    const st7 = step("Montando padrão, alvos e considerações");
+    try {
+      S.analise = await analisar({quem, vitima: S.vitima});
+      if (S.analise?.processos?.length) S.procs = S.analise.processos;
+      st7.ok();
+    } catch (err){ st7.err(err?.message || "falhou"); }
+    $("#l-badge").textContent = "LAUDO";
+  } catch (err){
+    if (err?.message !== "sem mcp") step("Investigação interrompida").err(err?.message || String(err));
+  } finally {
+    renderTudo();
+    btn.disabled = false; btn.textContent = "Investigar paspalho";
+  }
+}
+
+/* ====== modo local: o pedido volta pro Claude Code ====== */
+async function investigarLocal(raw){
+  const btn = $("#go"); btn.disabled = true; btn.textContent = "Investigando…";
+  Object.assign(S, {rows: [], lidos: 0, fontes: [], procs: [], analise: null, exemplo: false, vitima: $("#vitima").value.trim()});
+  $("#log").innerHTML = ""; $("#tb").innerHTML = ""; $("#logbox").hidden = false;
+  $("#l-kicker").textContent = "Laudo de " + new Date().toLocaleDateString("pt-BR");
+  $("#l-title").textContent = raw.split(/[;,\n]/)[0]; $("#l-badge").textContent = "AO VIVO";
+  placar(); analiseLocal();
+  let id;
+  try {
+    const r = await fetch("/api/pedido", {method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({alvo: raw, vitima: S.vitima, processos: $("#proc").checked, completa: $("#fundo").checked})});
+    const j = await r.json(); if (!r.ok) throw new Error(j.erro || "falhou");
+    id = j.id;
+  } catch (err){
+    step("Enviar pedido pro Claude Code").err((err.message || "falhou") + ". O Claude Code ainda está aberto?");
+    btn.disabled = false; btn.textContent = "Investigar paspalho"; return;
+  }
+  // "Parar pesquisa": larga este pedido (o Claude Code é avisado) e libera uma nova
+  let parado = false;
+  const parar = $("#parar"); parar.disabled = false;
+  parar.onclick = async () => {
+    parado = true; parar.disabled = true;
+    try { await fetch("/api/cancelar?id=" + id, {method: "POST"}); } catch {}
+    step("Pesquisa parada").err("pode começar uma nova");
+    $("#l-badge").textContent = "PARADO";
+    btn.disabled = false; btn.textContent = "Investigar paspalho";
+  };
+  let nLinhas = 0, nEtapas = -1;
+  const tick = async () => {
+    if (parado) return;
+    let st;
+    try { st = await (await fetch("/api/status?id=" + id)).json(); } catch { return setTimeout(tick, 3000); }
+    if (st.parcial) return setTimeout(tick, 1000);
+    if (JSON.stringify(st.etapas).length !== nEtapas){
+      nEtapas = JSON.stringify(st.etapas).length;
+      $("#log").innerHTML = "";
+      for (const e of st.etapas || []){
+        const s2 = step(e.txt);
+        if (e.estado === "ok") s2.ok(e.det); else if (e.estado === "err") s2.err(e.det); else if (e.estado === "skip") s2.skip(e.det);
+      }
+    }
+    const linhas = st.linhas || [];
+    if (linhas.length > nLinhas){ addRows(linhas.slice(nLinhas).filter(a => a.nivel === "grave" || a.nivel === "paspalho").map(achadoParaLinha)); analiseLocal(); nLinhas = linhas.length; }
+    if (st.fim && st.resultado){
+      $("#log").innerHTML = ""; for (const e of st.etapas || []){ const s2 = step(e.txt); e.estado === "err" ? s2.err(e.det) : e.estado === "skip" ? s2.skip(e.det) : s2.ok(e.det); }
+      const keep = $("#log").innerHTML;
+      aplicarJSON(st.resultado, "Claude Code");
+      $("#log").innerHTML = keep;
+      btn.disabled = false; btn.textContent = "Investigar paspalho"; parar.disabled = true;
+      return;
+    }
+    setTimeout(tick, 2000);
+  };
+  tick();
+}
+
+/* ====== importar JSON do Claude Code (/paspalho) ====== */
+async function importar(ev){
+  const f = ev.target.files[0]; if (!f) return;
+  try { aplicarJSON(JSON.parse(await f.text()), f.name); }
+  catch (err){ $("#avail").textContent = "Não consegui ler esse arquivo: precisa ser o .json do /paspalho."; }
+  ev.target.value = "";
+}
+function toIso(x){ const m = String(x || "").match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})/); return m ? `${m[1]}T${m[2]}` : (String(x || "").match(/^\d{4}-\d{2}-\d{2}/) ? String(x).slice(0,10) : null); }
+function achadoParaLinha(a){
+  return {texto: a.text, url: a.url, rede: a.platform, quando_iso: toIso(a.date), quando_texto: a.date,
+    nivel: a.nivel, alvo: a.alvo_do_ataque || (a.post_caption || "").split(":")[0], tema: a.tema || "", motivo: a.motivo,
+    xingamentos: a.xingamentos || [], sobre_vitima: !!a.sobre_vitima};
+}
+function aplicarJSON(d, fname){
+  {
+    S.exemplo = false;
+    S.rows = (d.achados || []).filter(a => a.nivel === "grave" || a.nivel === "paspalho").map(achadoParaLinha);
+    S.lidos = d.lidos_do_alvo || (d.fontes || []).reduce((s, x) => s + (x.lidos || 0), 0);
+    S.fontes = (d.fontes || []).map(x => ({fonte: x.fonte, itens: x.lidos, status: x.status + (x.obs ? " · " + x.obs : "")}));
+    S.procs = d.processos || [];
+    S.analise = {padrao: d.padrao || [], sobre_voce: d.sobre_voce || "", consideracoes: d.consideracoes || [
+      "Varredura profunda feita no Claude Code (/paspalho), com sessões logadas no Chrome de debug.",
+      "Textos sem post-pai visível aparecem como 'sem contexto' no alvo.",
+      "Comentário some: se algum virar caso, preserve com print e URL ou ata notarial.",
+    ]};
+    const nome = d.alvo ? `${d.alvo.nome || ""} @${d.alvo.handle || ""}` : fname;
+    $("#l-kicker").textContent = window.__PASPALHO_LOCAL ? "Laudo de " + new Date().toLocaleDateString("pt-BR") : "Importado do Claude Code"; $("#l-title").textContent = nome; $("#l-badge").textContent = "LAUDO";
+    $("#logbox").hidden = false; $("#log").innerHTML = ""; if (!window.__PASPALHO_LOCAL || fname !== "Claude Code") step(`Importei ${S.rows.length} comentários agressivos de ${fname}`).ok(`${S.lidos} textos lidos`);
+    renderTudo();
+  }
+}
+
+/* ====== exemplo inventado (estado inicial): nunca usar texto de caso real aqui ====== */
+function exemplo(){
+  S.lidos = 40;
+  S.rows = [
+    {texto: "Você é lenta assim sempre ou só quando abre a boca?", rede: "threads", quando_iso: "2026-01-12T23:10", nivel: "grave", alvo: "@perfil_a", tema: "reality", xingamentos: ["lenta"]},
+    {texto: "Cala a boca, ninguém te perguntou nada", rede: "threads", quando_iso: "2026-01-18T00:25", nivel: "paspalho", alvo: "@perfil_b", tema: "reality", xingamentos: ["cala a boca"]},
+    {texto: "Gente burra e sem caráter defendendo o indefensável de novo.", rede: "x", quando_iso: "2026-02-03T21:40", nivel: "grave", alvo: "torcedores", tema: "futebol", xingamentos: ["burra","sem caráter"]},
+    {texto: "Vai procurar um emprego, amigo.", rede: "threads", quando_iso: "2026-02-09T14:00", nivel: "paspalho", alvo: "@perfil_c", tema: "trabalho", xingamentos: []},
+    {texto: "Que papelão, vergonha alheia kkkkk", rede: "x", quando_iso: "2026-02-21T22:55", nivel: "paspalho", alvo: "@perfil_d", tema: "politica", xingamentos: ["vergonha alheia"]},
+  ];
+  S.fontes = [{fonte: "Threads (exemplo)", itens: 30, status: "ok"}, {fonte: "X (exemplo)", itens: 10, status: "ok"}];
+  S.procs = [];
+  S.analise = {
+    padrao: ["Exemplo inventado: 5 de 40 textos lidos são agressivos (13%).", "Assinatura: ataque à inteligência em forma de pergunta (\"lenta assim sempre ou só quando abre a boca?\").", "Ataca mais à noite, em discussões sobre reality show e futebol."],
+    sobre_voce: "Preencha suas redes no campo acima para saber se você aparece como alvo.",
+    consideracoes: ["Isto é um exemplo inventado, com perfis fictícios, para mostrar o laudo. Preencha o campo e clique em Investigar paspalho."],
+  };
+  renderTudo();
+}
+
+/* ====== conectar Firecrawl ====== */
+function pedirConector(msg){
+  $("#conectar").hidden = false;
+  $("#avail").textContent = msg || "Conecte o Firecrawl (passo a passo abaixo) pra investigar.";
+  $("#conectar").scrollIntoView({behavior: "smooth", block: "start"});
+}
+$("#fckey").addEventListener("input", e => {
+  const k = e.target.value.trim();
+  $("#fcurl").textContent = `https://mcp.firecrawl.dev/${k || "SUA_API_KEY"}/v2/mcp`;
+});
+$("#fccopy").addEventListener("click", async () => {
+  try { await navigator.clipboard.writeText($("#fcurl").textContent); $("#fccopy").textContent = "Copiado ✓"; }
+  catch { $("#fccopy").textContent = "Selecione e copie o endereço abaixo"; }
+});
+
+/* ====== boot ====== */
+$("#f").addEventListener("submit", investigar);
+$("#imp").addEventListener("change", importar);
+if (window.__PASPALHO_PRE) aplicarJSON(window.__PASPALHO_PRE, "varredura do Claude Code"); else exemplo();
+(async () => {
+  if (window.__PASPALHO_LOCAL){
+    try {  // ?novo abre zerado, sem reabrir o último laudo
+      const u = /[?&]novo\b/.test(location.search) ? null : await (await fetch("/api/ultimo")).json();
+      if (u && u.resultado) aplicarJSON(u.resultado, "Claude Code");
+    } catch {}
+    $("#imp-lbl").hidden = true; $("#parar").hidden = false;  // no local, importar não faz sentido
+    $("#avail").textContent = "Conectado ao Claude Code. Preencha e clique em Investigar paspalho.";
+    $(".lede").textContent = "Coloque o nome e as redes de quem você quer investigar. O Claude Code faz a busca com as suas sessões logadas, mostra aqui onde está procurando e monta o laudo enquanto acha.";
+    return;
+  }
+  if (!window.claude?.use){ $("#avail").textContent = "Abra no claude.ai para investigar. Importar funciona em qualquer lugar."; return; }
+  [sampleNS, mcpNS] = await Promise.all([claude.use("sample"), claude.use("mcp")]);
+  $("#avail").textContent = !sampleNS ? "Sem acesso ao Claude nesta visualização: só a importação funciona."
+    : !mcpNS ? (pedirConector(), "Conecte o Firecrawl (passo a passo abaixo) pra investigar.")
+    : "Pronto. A busca usa o seu conector Firecrawl e a análise usa o Claude.";
+})();
+</script>
+</body>
+</html>
