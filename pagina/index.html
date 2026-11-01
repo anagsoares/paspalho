@@ -426,15 +426,16 @@ function aplicarJSON(d, fname){
   }
 }
 
-/* ====== exemplo inventado (estado inicial): nunca usar texto de caso real aqui ====== */
+/* ====== exemplo inventado (estado inicial): nunca usar texto de caso real aqui.
+   Links do exemplo só em example.com (domínio reservado pra exemplo): nunca link de rede de verdade ====== */
 function exemplo(){
   S.lidos = 40;
   S.rows = [
-    {texto: "Você é lenta assim sempre ou só quando abre a boca?", rede: "threads", quando_iso: "2026-01-12T23:10", nivel: "grave", alvo: "@perfil_a", tema: "reality", xingamentos: ["lenta"]},
-    {texto: "Cala a boca, ninguém te perguntou nada", rede: "threads", quando_iso: "2026-01-18T00:25", nivel: "paspalho", alvo: "@perfil_b", tema: "reality", xingamentos: ["cala a boca"]},
-    {texto: "Gente burra e sem caráter defendendo o indefensável de novo.", rede: "x", quando_iso: "2026-02-03T21:40", nivel: "grave", alvo: "torcedores", tema: "futebol", xingamentos: ["burra","sem caráter"]},
-    {texto: "Vai procurar um emprego, amigo.", rede: "threads", quando_iso: "2026-02-09T14:00", nivel: "paspalho", alvo: "@perfil_c", tema: "trabalho", xingamentos: []},
-    {texto: "Que papelão, vergonha alheia kkkkk", rede: "x", quando_iso: "2026-02-21T22:55", nivel: "paspalho", alvo: "@perfil_d", tema: "politica", xingamentos: ["vergonha alheia"]},
+    {url: "https://example.com/paspalho/exemplo-1", texto: "Você é lenta assim sempre ou só quando abre a boca?", rede: "threads", quando_iso: "2026-01-12T23:10", nivel: "grave", alvo: "@perfil_a", tema: "reality", xingamentos: ["lenta"]},
+    {url: "https://example.com/paspalho/exemplo-2", texto: "Cala a boca, ninguém te perguntou nada", rede: "threads", quando_iso: "2026-01-18T00:25", nivel: "paspalho", alvo: "@perfil_b", tema: "reality", xingamentos: ["cala a boca"]},
+    {url: "https://example.com/paspalho/exemplo-3", texto: "Gente burra e sem caráter defendendo o indefensável de novo.", rede: "x", quando_iso: "2026-02-03T21:40", nivel: "grave", alvo: "torcedores", tema: "futebol", xingamentos: ["burra","sem caráter"]},
+    {url: "https://example.com/paspalho/exemplo-4", texto: "Vai procurar um emprego, amigo.", rede: "threads", quando_iso: "2026-02-09T14:00", nivel: "paspalho", alvo: "@perfil_c", tema: "trabalho", xingamentos: []},
+    {url: "https://example.com/paspalho/exemplo-5", texto: "Que papelão, vergonha alheia kkkkk", rede: "x", quando_iso: "2026-02-21T22:55", nivel: "paspalho", alvo: "@perfil_d", tema: "politica", xingamentos: ["vergonha alheia"]},
   ];
   S.fontes = [{fonte: "Threads (exemplo)", itens: 30, status: "ok"}, {fonte: "X (exemplo)", itens: 10, status: "ok"}];
   S.procs = [];
