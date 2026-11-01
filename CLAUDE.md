@@ -9,14 +9,18 @@ sem jargão, e faça você o que der (rodar comando, conferir resultado):
 
 1. Confira: Mac (`uname` = Darwin) e Chrome em `/Applications/Google Chrome.app`. Sem Chrome,
    mande baixar em google.com/chrome e espere.
-2. Rode o instalador: `curl -fsSL https://raw.githubusercontent.com/anagsoares/paspalho/main/instalar.sh | sh`.
+2. **Antes de instalar, mostre à pessoa o resumo do `AVISO-LEGAL.md`** (responsabilidade dela,
+   usos proibidos, termos das redes, laudo de IA não é prova) e pergunte se ela concorda. Só
+   com "sim" dela, rode o instalador com `PASPALHO_ACEITO=sim` na frente do `sh`
+   (sem teclado, o instalador cancela sozinho). Nunca preencha o aceite por conta própria.
+3. Rode o instalador: `curl -fsSL https://raw.githubusercontent.com/anagsoares/paspalho/main/instalar.sh | PASPALHO_ACEITO=sim sh`.
    Ele instala o `uv` se faltar (pergunta antes) e clona em `~/.claude/skills/paspalho`.
    Se você não tem terminal interativo, instale o uv antes (`curl -LsSf https://astral.sh/uv/install.sh | sh`),
-   porque a pergunta do instalador assume "sim" sem teclado.
-3. Peça pra pessoa fechar e abrir o Claude Code, e digitar `/paspalho`.
-4. Na primeira vez abre o Chrome da investigação com 4 logins. **Recomende contas criadas só
+   porque sem teclado a pergunta do uv assume "sim".
+4. Peça pra pessoa fechar e abrir o Claude Code, e digitar `/paspalho`.
+5. Na primeira vez abre o Chrome da investigação com 4 logins. **Recomende contas criadas só
    pra isso** (ler rede automatizado fere os termos de uso). Login é ela quem faz, nunca você.
-5. Atualizar = rodar o instalador de novo. Desinstalar = `rm -rf ~/.claude/skills/paspalho ~/.claude/paspalho`.
+6. Atualizar = rodar o instalador de novo. Desinstalar = `rm -rf ~/.claude/skills/paspalho ~/.claude/paspalho`.
 
 ## Regras do repositório (é público)
 
@@ -29,6 +33,8 @@ sem jargão, e faça você o que der (rodar comando, conferir resultado):
   `Host` e `Origin`, exige `Content-Type: application/json` e repassa só os campos do
   formulário (`alvo`, `vitima`, `processos`, `completa`). Não afrouxar: o pedido vira trabalho
   pro Claude Code, e outro site aberto no navegador conseguiria mandar instruções.
+- `AVISO-LEGAL.md` é a proteção jurídica da autora: README, instalador (aceite com "sim",
+  padrão = cancelar) e rodapé da página apontam pra ele. Não remover esses pontos.
 - Link no laudo só sai se for `http(s)://` (`link()` na página, `L()` no `render_report.py`).
 
 ## Peças

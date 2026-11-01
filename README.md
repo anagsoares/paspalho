@@ -19,6 +19,8 @@ No fim aparece o laudo: quantos comentários são graves e quantos são deboche,
 
 ## ⚠️ Leia antes de usar
 
+> **Ao instalar ou usar, você concorda com o [Aviso legal e termos de uso](AVISO-LEGAL.md).** Resumo: a ferramenta roda no seu computador e a responsabilidade pelo que você investiga e pelo que faz com o laudo é sua. A autora não se responsabiliza pelo mau uso. É proibido usar pra perseguir, expor, humilhar ou montar dossiê sobre alguém. O laudo é feito por IA, pode errar e não é prova nem parecer jurídico.
+
 **Use contas criadas só pra isso.** Pra ler o Instagram, o Threads, o X e o LinkedIn, a skill navega com uma conta logada, como uma pessoa faria, só que de forma automática. Isso vai contra os termos de uso dessas redes, e quem usa muito pode ter a conta limitada ou bloqueada. Por isso:
 
 - crie contas novas, só pra investigação, em cada rede;
@@ -84,6 +86,7 @@ curl -fsSL https://raw.githubusercontent.com/anagsoares/paspalho/main/instalar.s
 ```
 
 O instalador:
+- mostra o resumo do [aviso legal](AVISO-LEGAL.md) e só continua se você digitar **sim**;
 - confere se você tem Mac e Chrome;
 - instala o **uv** (um programa pequeno que roda os scripts da skill), se faltar. Ele pergunta antes;
 - coloca a skill na pasta do Claude Code (`~/.claude/skills/paspalho`).
@@ -175,4 +178,4 @@ Por enquanto, só no Mac.
 
 ---
 
-Feito por [Ana G. Soares](https://instagram.com/ana.gsoares) · [UNIAGIL](https://uniagil.com) · Licença [MIT](LICENSE)
+Feito por [Ana G. Soares](https://instagram.com/ana.gsoares) · [UNIAGIL](https://uniagil.com) · [Aviso legal](AVISO-LEGAL.md) · Licença [MIT](LICENSE)

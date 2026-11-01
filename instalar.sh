@@ -5,6 +5,7 @@
 #   curl -fsSL https://raw.githubusercontent.com/anagsoares/paspalho/main/instalar.sh | sh
 #
 # O que ele faz:
+#   0. mostra o aviso legal e só continua com "sim" (ou PASPALHO_ACEITO=sim);
 #   1. confere se é Mac e se tem o Google Chrome;
 #   2. instala o uv (programa que roda os scripts), se faltar, depois de perguntar;
 #   3. baixa a skill em ~/.claude/skills/paspalho (ou atualiza, se já estiver lá).
@@ -27,6 +28,34 @@ perguntar() {
 
 echo ""
 echo "🤡 Instalando o Paspalhômetro (skill /paspalho do Claude Code)"
+echo ""
+
+# 0. Aviso legal: só segue com "sim" explícito
+cat <<'AVISO'
+  ┌─ AVISO LEGAL ───────────────────────────────────────────────────────────┐
+  │ • A ferramenta roda no seu computador. A autora não recebe nem vê nada.  │
+  │ • Você é a única pessoa responsável por quem investiga, pelos dados que  │
+  │   coleta e pelo que faz com o laudo. A autora não se responsabiliza     │
+  │   pelo mau uso.                                                         │
+  │ • Proibido usar pra perseguir, expor, humilhar, discriminar ou montar   │
+  │   dossiê sobre alguém.                                                  │
+  │ • Ler redes de forma automatizada pode violar os termos de uso delas.   │
+  │ • O laudo é feito por IA, pode errar e não é prova nem parecer jurídico.│
+  └─────────────────────────────────────────────────────────────────────────┘
+  Texto completo: https://github.com/anagsoares/paspalho/blob/main/AVISO-LEGAL.md
+AVISO
+echo ""
+if [ "$PASPALHO_ACEITO" = "sim" ]; then
+  ok "Aviso legal aceito"
+else
+  printf '  Você leu e concorda com o aviso legal? Digite sim para continuar: '
+  r=""
+  if [ -r /dev/tty ]; then read -r r </dev/tty 2>/dev/null || r=""; fi
+  case "$r" in
+    [sS][iI][mM]) ok "Aviso legal aceito" ;;
+    *) echo ""; erro "Instalação cancelada: é preciso concordar com o aviso legal." ;;
+  esac
+fi
 echo ""
 
 # 1. Mac + Chrome
