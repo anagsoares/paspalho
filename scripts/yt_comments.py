@@ -2,9 +2,9 @@
 """Coleta comentários públicos do YouTube via yt-dlp (grátis, sem login).
 
 Uso:
-  python3 yt_comments.py --video URL [--video URL ...] --out c.jsonl
-  python3 yt_comments.py --channel https://www.youtube.com/@canal --videos 8 --out c.jsonl
-  python3 yt_comments.py --search "Nome Sobrenome contexto" --videos 8 --out c.jsonl
+  uv run -q python yt_comments.py --video URL [--video URL ...] --out c.jsonl
+  uv run -q python yt_comments.py --channel https://www.youtube.com/@canal --videos 8 --out c.jsonl
+  uv run -q python yt_comments.py --search "Nome Sobrenome contexto" --videos 8 --out c.jsonl
 
 --search acha vídeos DE OUTRAS PESSOAS falando da pessoa — é onde mora o
 paspalho que fala "dela" e não "com ela".
@@ -13,6 +13,9 @@ Saída no mesmo formato JSONL do ig_comments.py.
 """
 import argparse, json, re, shutil, subprocess, sys
 from datetime import datetime, timezone, timedelta
+
+for s in (sys.stdout, sys.stderr):
+    s.reconfigure(encoding="utf-8", errors="replace")
 
 BRT = timezone(timedelta(hours=-3))
 
@@ -25,7 +28,7 @@ def trivial(text):
 def ytdlp(args):
     # sem yt-dlp instalado, roda pelo uv (baixa na hora, não precisa instalar nada)
     cmd = ["yt-dlp"] if shutil.which("yt-dlp") else ["uvx", "yt-dlp"]
-    r = subprocess.run([*cmd, "--no-warnings", "--ignore-errors", *args], capture_output=True, text=True)
+    r = subprocess.run([*cmd, "--no-warnings", "--ignore-errors", *args], capture_output=True, text=True, encoding="utf-8", errors="replace")
     return r.stdout
 
 
@@ -54,7 +57,7 @@ def main():
         sys.exit("nenhum vídeo encontrado")
 
     total = kept = 0
-    with open(a.out, "w") as f:
+    with open(a.out, "w", encoding="utf-8") as f:
         for url in urls:
             raw = ytdlp(["-J", "--skip-download", "--write-comments",
                          "--extractor-args", f"youtube:max_comments={a.max_comments},all,all,all;comment_sort=top", url])

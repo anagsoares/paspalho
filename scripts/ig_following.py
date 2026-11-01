@@ -16,6 +16,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 import ig_comments as m  # noqa: E402
 
+for s in (sys.stdout, sys.stderr):
+    s.reconfigure(encoding="utf-8", errors="replace")
+
 
 def main():
     ap = argparse.ArgumentParser()
@@ -51,7 +54,7 @@ def main():
                 print(f"... {len(found)}", file=sys.stderr)
     finally:
         br.close()
-    json.dump(list(found.values()), open(a.out, "w"), ensure_ascii=False, indent=1)
+    json.dump(list(found.values()), open(a.out, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print(f"OK: {len(found)} perfis seguidos por @{u} → {a.out}", file=sys.stderr)
 
 

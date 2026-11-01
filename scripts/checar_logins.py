@@ -9,6 +9,9 @@ import json, os, sys, urllib.request
 
 import websocket
 
+for s in (sys.stdout, sys.stderr):
+    s.reconfigure(encoding="utf-8", errors="replace")
+
 REDES = {
     "Instagram": ("instagram.com", "sessionid"),
     "Threads": ("threads.com", "sessionid"),
@@ -22,8 +25,9 @@ def main():
         porta = os.environ.get("PASPALHO_PORTA") or "9333"
         ver = json.load(urllib.request.urlopen(f"http://localhost:{porta}/json/version", timeout=3))
     except Exception:
-        sys.exit("O Chrome da investigação não está aberto. Rode: sh scripts/abrir_chrome.sh")
+        sys.exit("O Chrome da investigação não está aberto. Rode: uv run -q python scripts/abrir_chrome.py")
     ws = websocket.create_connection(ver["webSocketDebuggerUrl"], timeout=20, suppress_origin=True)
+
     ws.send(json.dumps({"id": 1, "method": "Storage.getCookies"}))
     cookies = json.loads(ws.recv())["result"]["cookies"]
     ws.close()
@@ -34,7 +38,7 @@ def main():
         if not ok:
             faltam.append(rede)
     if faltam:
-        print("Falta logar em: " + ", ".join(faltam) + ". Rode `sh scripts/abrir_chrome.sh --logins` e entre nessas contas.")
+        print("Falta logar em: " + ", ".join(faltam) + ". Rode `uv run -q python scripts/abrir_chrome.py --logins` e entre nessas contas.")
 
 
 if __name__ == "__main__":

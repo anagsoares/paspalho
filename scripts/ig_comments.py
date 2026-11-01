@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Coleta comentários públicos de posts do Instagram pelo Chrome da investigação
-(o "Chrome da investigação", porta 9333, aberto por scripts/abrir_chrome.sh) já logado.
+(o "Chrome da investigação", porta 9333, aberto por scripts/abrir_chrome.py) já logado.
 
 Como funciona: abre uma aba em segundo plano, navega até o perfil e até cada
 post como uma pessoa faria, e captura as respostas GraphQL que o próprio
@@ -21,6 +21,9 @@ import argparse, json, os, re, sys, time, urllib.request
 from datetime import datetime, timezone, timedelta
 
 import websocket
+
+for s in (sys.stdout, sys.stderr):
+    s.reconfigure(encoding="utf-8", errors="replace")
 
 BRT = timezone(timedelta(hours=-3))
 # Porta do Chrome da investigação. Mude com PASPALHO_PORTA (ex.: pra testar do zero com
@@ -72,7 +75,7 @@ class Browser:
         try:
             ver = json.load(urllib.request.urlopen(f"http://localhost:{port}/json/version", timeout=5))
         except Exception:
-            sys.exit(f"O Chrome da investigação não está aberto (porta {port}). Rode: sh scripts/abrir_chrome.sh")
+            sys.exit(f"O Chrome da investigação não está aberto (porta {port}). Rode: uv run -q python scripts/abrir_chrome.py")
         self.ws = websocket.create_connection(ver["webSocketDebuggerUrl"], timeout=60, suppress_origin=True)
         self.n, self.pending = 0, []
         self.open_tab()
@@ -191,7 +194,7 @@ def comments_from(bodies):
 def check_login(br):
     href = br.js("location.href") or ""
     if "/accounts/login" in href or br.js("document.documentElement.className.includes('not-logged-in')"):
-        sys.exit("Instagram deslogado no Chrome da investigação — rode `sh scripts/abrir_chrome.sh --logins` e entre no Instagram.")
+        sys.exit("Instagram deslogado no Chrome da investigação — rode `uv run -q python scripts/abrir_chrome.py --logins` e entre no Instagram.")
 
 
 def user_posts(br, user, n):
@@ -247,7 +250,7 @@ def main():
                 print(f"aviso: URL inválida {url}", file=sys.stderr)
 
         total = kept = 0
-        with open(a.out, "w") as f:
+        with open(a.out, "w", encoding="utf-8") as f:
             for code, meta in targets:
                 post_url = f"https://www.instagram.com/p/{code}/"
                 if meta and not meta.get("comment_count"):

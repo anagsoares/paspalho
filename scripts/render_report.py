@@ -2,7 +2,7 @@
 """Gera o dossiê HTML da varredura /paspalho e guarda o histórico.
 
 Uso:
-  python3 render_report.py achados.json
+  uv run -q python render_report.py achados.json
 
 achados.json:
 {
@@ -26,6 +26,9 @@ Imprime o caminho do HTML.
 import html, json, os, re, sys
 from datetime import datetime
 from pathlib import Path
+
+for s in (sys.stdout, sys.stderr):
+    s.reconfigure(encoding="utf-8", errors="replace")
 
 BASE = Path(os.environ.get("PASPALHO_DIR") or Path.home() / "Downloads" / "Paspalho")
 NIVEIS = {
@@ -54,7 +57,7 @@ def quando(d):
 
 
 def main():
-    src = json.loads(Path(sys.argv[1]).read_text())
+    src = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
     handle = re.sub(r"[^\w.-]", "_", str(src["alvo"]["handle"]).lstrip("@")).strip(".") or "sem-handle"  # vira nome de pasta
     pasta = BASE / handle
     pasta.mkdir(parents=True, exist_ok=True)
@@ -65,12 +68,12 @@ def main():
         if old.stem == hoje:
             continue
         try:
-            vistos |= {a["url"] for a in json.loads(old.read_text()).get("achados", [])}
+            vistos |= {a["url"] for a in json.loads(old.read_text(encoding="utf-8")).get("achados", [])}
         except Exception:
             pass
     for a in src["achados"]:
         a["novo"] = a["url"] not in vistos
-    (pasta / f"{hoje}.json").write_text(json.dumps(src, ensure_ascii=False, indent=2))
+    (pasta / f"{hoje}.json").write_text(json.dumps(src, ensure_ascii=False, indent=2), encoding="utf-8")
 
     cont = {k: sum(1 for a in src["achados"] if a["nivel"] == k) for k in NIVEIS}
     novos = sum(1 for a in src["achados"] if a["novo"] and a["nivel"] != "critica")
@@ -153,7 +156,7 @@ td,th{{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line)}} th
 preservar já (print com URL e data visíveis, ou ata notarial/Verifact). Autor = o @ exibido na plataforma; nenhuma tentativa de identificar quem está por trás.</p>
 </main></body></html>"""
     out = pasta / f"{hoje}.html"
-    out.write_text(doc)
+    out.write_text(doc, encoding="utf-8")
     print(out)
 
 

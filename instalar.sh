@@ -59,7 +59,7 @@ fi
 echo ""
 
 # 1. Mac + Chrome
-[ "$(uname)" = "Darwin" ] || erro "Por enquanto a skill só funciona no Mac."
+[ "$(uname)" = "Darwin" ] || erro "Este instalador é pro Mac. No Windows, use o instalar.ps1 (veja o README)."
 ok "Mac"
 if [ -x "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" ]; then
   ok "Google Chrome"

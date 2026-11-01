@@ -70,14 +70,16 @@ No fim aparece o laudo: quantos comentários são graves e quantos são deboche,
 
 ## O que você precisa
 
-- Um **Mac** com o **Google Chrome** instalado.
+- Um computador com **Mac** ou **Windows**, e o **Google Chrome** instalado.
 - O **Claude Code** instalado e funcionando ([como instalar](https://docs.claude.com/pt/docs/claude-code/overview)). Pode ser pelo Terminal, pelo app ou pela extensão do VS Code.
 
 O instalador cuida do resto.
 
 ## Como instalar
 
-**Passo 1.** Abra o **Terminal** do Mac (aperte `⌘ + espaço`, digite *Terminal* e dê Enter).
+### No Mac
+
+**Passo 1.** Abra o **Terminal** (aperte `⌘ + espaço`, digite *Terminal* e dê Enter).
 
 **Passo 2.** Copie a linha abaixo, cole no Terminal e aperte Enter:
 
@@ -85,15 +87,30 @@ O instalador cuida do resto.
 curl -fsSL https://raw.githubusercontent.com/anagsoares/paspalho/main/instalar.sh | sh
 ```
 
-O instalador:
-- mostra o resumo do [aviso legal](AVISO-LEGAL.md) e só continua se você digitar **sim**;
-- confere se você tem Mac e Chrome;
-- instala o **uv** (um programa pequeno que roda os scripts da skill), se faltar. Ele pergunta antes;
-- coloca a skill na pasta do Claude Code (`~/.claude/skills/paspalho`).
+**Passo 3.** Feche e abra o Claude Code de novo. Pronto.
 
-Ele não pede senha e não mexe no seu Chrome de sempre.
+### No Windows
+
+> O Windows é novo no Paspalhômetro e ainda está **em teste**. Se algo der errado, peça ajuda ao Claude Code (ele conhece as instruções deste repositório) ou [abra um aviso aqui](https://github.com/anagsoares/paspalho/issues).
+
+**Passo 1.** Abra o **PowerShell** (clique no menu Iniciar, digite *PowerShell* e dê Enter).
+
+**Passo 2.** Copie a linha abaixo, cole no PowerShell e aperte Enter:
+
+```
+irm https://raw.githubusercontent.com/anagsoares/paspalho/main/instalar.ps1 | iex
+```
 
 **Passo 3.** Feche e abra o Claude Code de novo. Pronto.
+
+### O que o instalador faz (nos dois)
+
+- mostra o resumo do [aviso legal](AVISO-LEGAL.md) e só continua se você digitar **sim**;
+- confere se você tem o Chrome;
+- instala o **uv** (um programa pequeno que roda os scripts da skill), se faltar. Ele pergunta antes;
+- coloca a skill na pasta do Claude Code (`.claude/skills/paspalho`, dentro da sua pasta de usuário).
+
+Ele não pede senha e não mexe no seu Chrome de sempre.
 
 <details>
 <summary>Prefere instalar pelo git, sem o instalador?</summary>
@@ -102,7 +119,7 @@ Ele não pede senha e não mexe no seu Chrome de sempre.
 git clone https://github.com/anagsoares/paspalho ~/.claude/skills/paspalho
 ```
 
-E instale o uv: `curl -LsSf https://astral.sh/uv/install.sh | sh`
+E instale o uv: no Mac, `curl -LsSf https://astral.sh/uv/install.sh | sh`; no Windows (PowerShell), `irm https://astral.sh/uv/install.ps1 | iex`.
 </details>
 
 ## Primeira vez: logar as contas de investigação
@@ -139,26 +156,32 @@ Na sua pasta **Downloads**, dentro de `Paspalho/<nome do perfil>/`. Cada investi
 
 ## Privacidade e segurança
 
-- **Tudo fica no seu Mac.** Os laudos, os pedidos e o Chrome da investigação ficam no seu computador. Nada vai pra um servidor da skill (ela não tem servidor). Os textos coletados passam pelo Claude, como qualquer conversa sua no Claude Code.
+- **Tudo fica no seu computador.** Os laudos, os pedidos e o Chrome da investigação ficam no seu computador. Nada vai pra um servidor da skill (ela não tem servidor). Os textos coletados passam pelo Claude, como qualquer conversa sua no Claude Code.
 - **O Paspalhômetro só aceita pedido dele mesmo.** A página roda em `localhost` e recusa pedido vindo de qualquer outro site aberto no seu navegador.
-- **O Chrome da investigação guarda os logins** das contas de investigação, na pasta `~/.claude/paspalho/chrome`. Quem usa o seu Mac consegue entrar nessas contas. Mais um motivo pra não usar sua conta pessoal.
+- **O Chrome da investigação guarda os logins** das contas de investigação, na pasta `~/.claude/paspalho/chrome`. Quem usa o seu computador consegue entrar nessas contas. Mais um motivo pra não usar sua conta pessoal.
 - **O código é aberto.** Dá pra ler tudo o que a skill faz neste repositório.
 
 ## Atualizar e desinstalar
 
 **Atualizar:** rode de novo a linha de instalação. Ela baixa a versão mais nova.
 
-**Desinstalar:** cole no Terminal:
+**Desinstalar:** no Mac, cole no Terminal:
 
 ```
 rm -rf ~/.claude/skills/paspalho ~/.claude/paspalho
+```
+
+No Windows, cole no PowerShell:
+
+```
+Remove-Item -Recurse -Force "$HOME\.claude\skills\paspalho", "$HOME\.claude\paspalho"
 ```
 
 Isso apaga a skill, o histórico de pedidos e o Chrome da investigação (com os logins). Os laudos em `Downloads/Paspalho` continuam lá até você apagar.
 
 ## Perguntas comuns
 
-**Meu Chrome normal não abre enquanto a investigação roda.**
+**No Mac, meu Chrome normal não abre enquanto a investigação roda.**
 Clicar no ícone do Chrome traz o Chrome da investigação pra frente. Pra abrir o seu, cole no Terminal: `open -na "Google Chrome"`.
 
 **Apareceu "precisa login" numa rede.**
@@ -174,7 +197,7 @@ Quer dizer que não achou nada no que conseguiu ler. O laudo sempre mostra quant
 Bloqueio esconde o perfil nos dois sentidos. É mais um motivo pra usar uma conta de investigação, que não tem bloqueio com ninguém.
 
 **Funciona no Windows?**
-Por enquanto, só no Mac.
+Sim, mas ainda está em teste. No Mac, já foi usado de verdade. Linux não é suportado.
 
 ---
 

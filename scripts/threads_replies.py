@@ -15,6 +15,9 @@ import sys, json
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 import ig_comments as m
+
+for s in (sys.stdout, sys.stderr):
+    s.reconfigure(encoding="utf-8", errors="replace")
 who = sys.argv[1].lstrip("@").lower()
 out = sys.argv[2]
 maxs = int(sys.argv[3]) if len(sys.argv) > 3 else 150
@@ -49,7 +52,7 @@ try:
         grab(br.drain(3))
         stale = stale + 1 if len(items) == before else 0
         if stale >= 4: break
-    json.dump(sorted(items.values(), key=lambda x: x["date"] or "", reverse=True), open(out, "w"), ensure_ascii=False, indent=1)
+    json.dump(sorted(items.values(), key=lambda x: x["date"] or "", reverse=True), open(out, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     v = sorted(items.values(), key=lambda x: x["date"] or "")
     print("rolagens", i+1, "| respostas dele:", len(items), "| de", v[0]["date"] if v else "-", "até", v[-1]["date"] if v else "-")
 finally:

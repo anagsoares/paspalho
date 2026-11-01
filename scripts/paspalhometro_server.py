@@ -6,13 +6,14 @@ Fluxo:
   1. Claude Code sobe este servidor (em background) e abre http://localhost:<porta>/
   2. A pessoa preenche e clica "Investigar paspalho" → POST /api/pedido grava
      <dados>/pedidos/<id>.json
-  3. Claude Code, que está esperando esse arquivo (esperar_pedido.sh), roda a skill e
+  3. Claude Code, que está esperando esse arquivo (esperar_pedido.py), roda a skill e
      escreve o andamento com progresso.py → <dados>/andamento/<id>.json
   4. A página consulta GET /api/status?id=<id> a cada 2 s, mostra as etapas, monta a
      tabela com as linhas parciais e, no fim, o laudo completo.
 
 Uso:
-  python3 paspalhometro_server.py [--porta 8766]
+  uv run -q python paspalhometro_server.py [--porta 8766]
+  uv run -q python paspalhometro_server.py --parar
 
 Só escuta em 127.0.0.1. Sem dependências fora da biblioteca padrão.
 
@@ -20,13 +21,16 @@ Segurança: o pedido vira trabalho pro Claude Code, então só aceita o que vem 
 página. Outro site aberto no navegador não consegue mandar pedido (Origin e Host são
 conferidos, POST exige JSON) e o pedido só leva os campos do formulário, com tamanho limitado.
 """
-import argparse, json, secrets, time
+import argparse, json, os, secrets, signal, sys, time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 
+for s in (sys.stdout, sys.stderr):
+    s.reconfigure(encoding="utf-8", errors="replace")
+
 AQUI = Path(__file__).resolve().parent
-PAGINA = AQUI.parent / "artifact" / "index.html"
+PAGINA = AQUI.parent / "pagina" / "index.html"
 DADOS = Path.home() / ".claude" / "paspalho"
 CAMPOS_TEXTO = {"alvo": 1000, "vitima": 1000}  # campo: tamanho máximo
 CAMPOS_SIM_NAO = ("processos", "completa")
@@ -39,7 +43,7 @@ def aguardando(pid):
     lido = DADOS / "pedidos" / "lidos" / f"{pid}.json"
     vigia = DADOS / "vigia"
     try:
-        ouvindo = vigia.exists() and agora - int(vigia.read_text().strip() or 0) < 10
+        ouvindo = vigia.exists() and agora - int(vigia.read_text(encoding="utf-8").strip() or 0) < 10
     except ValueError:
         ouvindo = False
     if na_fila.exists():
@@ -81,14 +85,12 @@ class H(BaseHTTPRequestHandler):
             return self._send(403, {"erro": "acesso só pela página do Paspalhômetro"})
         u = urlparse(self.path)
         if u.path in ("/", "/index.html"):
-            html = PAGINA.read_text()
-            html = html.replace("<script>\n/* ====== Instruções", "<script>window.__PASPALHO_LOCAL = true;</script>\n<script>\n/* ====== Instruções", 1)
-            return self._send(200, html.encode(), "text/html; charset=utf-8")
+            return self._send(200, PAGINA.read_bytes(), "text/html; charset=utf-8")
         if u.path == "/api/ultimo":  # último laudo terminado, pra página reabrir com ele
             fins = sorted((DADOS / "andamento").glob("*.json"), key=lambda f: f.stat().st_mtime, reverse=True)
             for f in fins:
                 try:
-                    st = json.loads(f.read_text())
+                    st = json.loads(f.read_text(encoding="utf-8"))
                 except json.JSONDecodeError:
                     continue
                 if st.get("fim") and st.get("resultado"):
@@ -102,7 +104,7 @@ class H(BaseHTTPRequestHandler):
             if not f.exists():
                 return self._send(200, {"etapas": aguardando(pid), "linhas": [], "fim": False})
             try:
-                return self._send(200, json.loads(f.read_text()))
+                return self._send(200, json.loads(f.read_text(encoding="utf-8")))
             except json.JSONDecodeError:  # arquivo no meio da escrita
                 return self._send(200, {"etapas": [], "linhas": [], "fim": False, "parcial": True})
         return self._send(404, {"erro": "não encontrado"})
@@ -117,7 +119,7 @@ class H(BaseHTTPRequestHandler):
             if not pid.isalnum():
                 return self._send(400, {"erro": "id inválido"})
             (DADOS / "cancelados").mkdir(parents=True, exist_ok=True)
-            (DADOS / "cancelados" / pid).write_text(time.strftime("%Y-%m-%d %H:%M:%S"))
+            (DADOS / "cancelados" / pid).write_text(time.strftime("%Y-%m-%d %H:%M:%S"), encoding="utf-8")
             na_fila = DADOS / "pedidos" / f"{pid}.json"
             if na_fila.exists():  # ainda não pego: sai da fila
                 na_fila.unlink()
@@ -141,17 +143,28 @@ class H(BaseHTTPRequestHandler):
         pid = secrets.token_hex(4)
         pedido.update({"id": pid, "recebido_em": time.strftime("%Y-%m-%d %H:%M:%S")})
         (DADOS / "pedidos").mkdir(parents=True, exist_ok=True)
-        (DADOS / "pedidos" / f"{pid}.json").write_text(json.dumps(pedido, ensure_ascii=False, indent=1))
+        (DADOS / "pedidos" / f"{pid}.json").write_text(json.dumps(pedido, ensure_ascii=False, indent=1), encoding="utf-8")
         return self._send(200, {"id": pid})
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--porta", type=int, default=8766)
+    ap.add_argument("--parar", action="store_true", help="desliga o servidor que está no ar")
     a = ap.parse_args()
+    pidf = DADOS / "servidor.pid"
+    if a.parar:  # pelo PID que o próprio servidor gravou: igual no Mac e no Windows
+        try:
+            os.kill(int(pidf.read_text(encoding="utf-8")), signal.SIGTERM)
+            print("Paspalhômetro desligado.")
+        except (OSError, ValueError):
+            print("O Paspalhômetro não estava no ar.")
+        pidf.unlink(missing_ok=True)
+        return
     for d in ("pedidos", "andamento"):
         (DADOS / d).mkdir(parents=True, exist_ok=True)
     srv = ThreadingHTTPServer(("127.0.0.1", a.porta), H)
+    pidf.write_text(str(os.getpid()), encoding="utf-8")
     print(f"Paspalhômetro em http://localhost:{a.porta}/", flush=True)
     srv.serve_forever()
 

@@ -7,20 +7,22 @@ Skill do Claude Code (`SKILL.md` é a entrada). Instalada em `~/.claude/skills/p
 Quem usa este repositório costuma **não ser programador**. Conduza pela mão, um passo por vez,
 sem jargão, e faça você o que der (rodar comando, conferir resultado):
 
-1. Confira: Mac (`uname` = Darwin) e Chrome em `/Applications/Google Chrome.app`. Sem Chrome,
-   mande baixar em google.com/chrome e espere.
+1. Confira: Mac ou Windows, e Google Chrome instalado. Sem Chrome, mande baixar em
+   google.com/chrome e espere.
 2. **Antes de instalar, mostre à pessoa o resumo do `AVISO-LEGAL.md`** (responsabilidade dela,
    usos proibidos, termos das redes, laudo de IA não é prova) e pergunte se ela concorda. Só
    com "sim" dela, rode o instalador com `PASPALHO_ACEITO=sim` na frente do `sh`
    (sem teclado, o instalador cancela sozinho). Nunca preencha o aceite por conta própria.
-3. Rode o instalador: `curl -fsSL https://raw.githubusercontent.com/anagsoares/paspalho/main/instalar.sh | PASPALHO_ACEITO=sim sh`.
+3. Rode o instalador. **Mac:** `curl -fsSL https://raw.githubusercontent.com/anagsoares/paspalho/main/instalar.sh | PASPALHO_ACEITO=sim sh`.
+   **Windows** (PowerShell): `$env:PASPALHO_ACEITO="sim"; irm https://raw.githubusercontent.com/anagsoares/paspalho/main/instalar.ps1 | iex`.
    Ele instala o `uv` se faltar (pergunta antes) e clona em `~/.claude/skills/paspalho`.
-   Se você não tem terminal interativo, instale o uv antes (`curl -LsSf https://astral.sh/uv/install.sh | sh`),
+   Se você não tem terminal interativo, instale o uv antes (Mac: `curl -LsSf https://astral.sh/uv/install.sh | sh`; Windows: `irm https://astral.sh/uv/install.ps1 | iex`),
    porque sem teclado a pergunta do uv assume "sim".
 4. Peça pra pessoa fechar e abrir o Claude Code, e digitar `/paspalho`.
 5. Na primeira vez abre o Chrome da investigação com 4 logins. **Recomende contas criadas só
    pra isso** (ler rede automatizado fere os termos de uso). Login é ela quem faz, nunca você.
-6. Atualizar = rodar o instalador de novo. Desinstalar = `rm -rf ~/.claude/skills/paspalho ~/.claude/paspalho`.
+6. Atualizar = rodar o instalador de novo. Desinstalar = apagar as pastas `~/.claude/skills/paspalho` e `~/.claude/paspalho`
+   (no Windows, `%USERPROFILE%\.claude\...`).
 
 ## Regras do repositório (é público)
 
@@ -39,12 +41,13 @@ sem jargão, e faça você o que der (rodar comando, conferir resultado):
 
 ## Peças
 
-- `scripts/abrir_chrome.sh`, `scripts/checar_logins.py`: Chrome da investigação (perfil em `~/.claude/paspalho/chrome`, porta 9333).
+- `scripts/abrir_chrome.py` (acha o Chrome no Mac e no Windows), `scripts/checar_logins.py`: Chrome da investigação (perfil em `~/.claude/paspalho/chrome`, porta 9333).
 - Coletores (todos gravam o mesmo JSONL): `ig_comments.py`, `ig_following.py`, `threads_replies.py`, `x_search.py`, `yt_comments.py` (usa `yt-dlp`; sem ele instalado, roda via `uvx yt-dlp`).
-- `instalar.sh`: instalador de quem baixa (confere Mac/Chrome, instala uv, clona ou atualiza). Não mexe se `~/.claude/skills/paspalho` for symlink. `PASPALHO_REPO=file:///caminho` testa sem GitHub.
-- Paspalhômetro local: `paspalhometro_server.py` serve `artifact/index.html` em modo local; `esperar_pedido.sh` pega o pedido; `progresso.py` escreve o andamento que a página lê.
+- `instalar.sh` (Mac) e `instalar.ps1` (Windows, ainda não testado em máquina real): instaladores de quem baixa (confere Mac/Chrome, instala uv, clona ou atualiza). Não mexe se `~/.claude/skills/paspalho` for symlink. `PASPALHO_REPO=file:///caminho` testa sem GitHub.
+- Paspalhômetro local: `paspalhometro_server.py` serve `pagina/index.html`; `esperar_pedido.py` pega o pedido; `progresso.py` escreve o andamento que a página lê.
 - Laudo: `render_report.py` (HTML simples + JSON em `~/Downloads/Paspalho/`). O laudo visual é a própria página do Paspalhômetro lendo o JSON.
-- `artifact/index.html` também roda como artefato do claude.ai (busca pelo conector Firecrawl + classificação pelo Claude). Em modo local (`window.__PASPALHO_LOCAL`), o botão manda o pedido pro Claude Code.
+- `pagina/index.html` **só funciona servida pelo `paspalhometro_server.py`**. Não publicar como artefato do
+  claude.ai: o modo artefato (busca pelo Firecrawl) foi removido em 2026-11-01 porque não funciona direito.
 
 ## Testar do zero
 
@@ -62,4 +65,9 @@ Numa máquina que já tem Chrome de debug na 9333: abra o Claude Code com
 - **Chrome headless com cookies copiados** é barrado pelo controle de permissões do Claude Code como burla anti-robô. Não usar.
 - **Matar processo:** sempre pelo PID da porta. `pkill -f chrome` casa com o próprio Claude Code (flag `--no-chrome`).
 - **X:** a busca (`from:`) esconde contas que a conta logada bloqueou. Perfil bloqueado ainda abre em `x.com/<handle>/with_replies` clicando em "Ver os posts".
-- **Vigia de pedidos:** `esperar_pedido.sh` grava `~/.claude/paspalho/vigia` a cada 2 s; o servidor usa isso pra dizer na página se o pedido está na fila sem ninguém ouvindo, ou se foi pego e não começou.
+- **Vigia de pedidos:** `esperar_pedido.py` grava `~/.claude/paspalho/vigia` a cada 2 s; o servidor usa isso pra dizer na página se o pedido está na fila sem ninguém ouvindo, ou se foi pego e não começou.
+- **Windows:** todo script lê, grava e imprime em UTF-8 explícito (senão acento e emoji quebram no
+  Windows); rodar sempre com `uv run -q python` (`python3` não existe lá). `.gitattributes` força
+  LF, senão o Git do Windows converte as quebras de linha. `progresso.py` tenta de novo se o arquivo
+  estiver em uso (no Windows, trocar arquivo aberto pelo servidor dá erro por um instante).
+  Desligar o servidor = `paspalhometro_server.py --parar` (PID gravado), nada de `lsof`/`pkill`.

@@ -19,6 +19,9 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from urllib.parse import quote
 
+for s in (sys.stdout, sys.stderr):
+    s.reconfigure(encoding="utf-8", errors="replace")
+
 BRT = timezone(timedelta(hours=-3))
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -138,10 +141,10 @@ def main():
     else:
         posts = via_last30days(a.q, a.count)
         if posts is None:
-            sys.exit("X pulado: o Chrome da investigação não está logado no X (rode `sh scripts/abrir_chrome.sh --logins`).")
+            sys.exit("X pulado: o Chrome da investigação não está logado no X (rode `uv run -q python scripts/abrir_chrome.py --logins`).")
 
     vistos, kept = set(), 0
-    with open(a.out, "w") as f:
+    with open(a.out, "w", encoding="utf-8") as f:
         for t in posts:
             if t["id"] in vistos or trivial(t["text"]):
                 continue
