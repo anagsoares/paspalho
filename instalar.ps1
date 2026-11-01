@@ -1,4 +1,4 @@
-# Instala (ou atualiza) a skill /paspalho do Claude Code no Windows.
+# Instala (ou atualiza) o agente /paspalho do Claude Code no Windows.
 #
 # Uso, no PowerShell:
 #   irm https://raw.githubusercontent.com/anagsoares/paspalho/main/instalar.ps1 | iex
@@ -7,7 +7,7 @@
 #   0. mostra o aviso legal e só continua com "sim" (ou $env:PASPALHO_ACEITO = "sim");
 #   1. confere se tem o Google Chrome;
 #   2. instala o uv (programa que roda os scripts), se faltar, depois de perguntar;
-#   3. baixa a skill em %USERPROFILE%\.claude\skills\paspalho (ou atualiza, se já estiver lá).
+#   3. baixa o agente em %USERPROFILE%\.claude\skills\paspalho (ou atualiza, se já estiver lá).
 # Não pede senha de administrador, não mexe no seu Chrome de sempre e não instala nada fora da sua pasta.
 
 $ErrorActionPreference = "Stop"
@@ -20,7 +20,7 @@ function Erro($t)  { Write-Host "  [x]  $t" -ForegroundColor Red; throw "instala
 
 function Instalar {
   Write-Host ""
-  Write-Host "Instalando o Paspalhômetro (skill /paspalho do Claude Code)"
+  Write-Host "Instalando o Paspalhômetro (agente /paspalho do Claude Code)"
   Write-Host ""
 
   # 0. Aviso legal: só segue com "sim" explícito
@@ -60,7 +60,7 @@ function Instalar {
     Ok "uv"
   } else {
     Write-Host ""
-    Write-Host "  Falta o uv, um programa pequeno que roda os scripts da skill (https://docs.astral.sh/uv/)."
+    Write-Host "  Falta o uv, um programa pequeno que roda os scripts do agente (https://docs.astral.sh/uv/)."
     $r = "s"
     try { $r = Read-Host "  Posso instalar o uv agora? [S/n]" } catch { $r = "s" }
     if ($r -notmatch '^[nN]') {
@@ -69,7 +69,7 @@ function Instalar {
       if (Get-Command uv -ErrorAction SilentlyContinue) { Ok "uv instalado" }
       else { Erro "O uv não instalou. Tente de novo ou peça ajuda ao Claude Code: 'instala o uv pra mim'." }
     } else {
-      Aviso "Sem o uv, a skill não roda. Rode este instalador de novo quando quiser."
+      Aviso "Sem o uv, o agente não roda. Rode este instalador de novo quando quiser."
     }
   }
 
@@ -78,24 +78,24 @@ function Instalar {
   $item = Get-Item $Destino -ErrorAction SilentlyContinue
   $temGit = [bool](Get-Command git -ErrorAction SilentlyContinue)
   if ($item -and $item.LinkType) {
-    Ok "A skill já está instalada como atalho para $($item.Target). Não mexi."
+    Ok "O agente já está instalado como atalho para $($item.Target). Não mexi."
   } elseif ($item -and (Test-Path (Join-Path $Destino ".git"))) {
     git -C $Destino pull --ff-only -q
     if ($LASTEXITCODE -ne 0) { Erro "Não consegui atualizar. Confira a internet e rode de novo." }
-    Ok "Skill atualizada para a versão mais nova"
+    Ok "Agente atualizado para a versão mais nova"
   } elseif ($item -and (Test-Path (Join-Path $Destino ".instalado-sem-git"))) {
     Remove-Item -Recurse -Force $Destino
     Baixar-Pacote
-    Ok "Skill atualizada para a versão mais nova"
+    Ok "Agente atualizado para a versão mais nova"
   } elseif ($item) {
     Erro "Já existe uma pasta $Destino que não veio deste instalador. Renomeie ou apague e rode de novo."
   } elseif ($temGit) {
     git clone -q --depth 1 $Repo $Destino
-    if ($LASTEXITCODE -ne 0) { Erro "Não consegui baixar a skill. Confira a internet e rode de novo." }
-    Ok "Skill instalada em $Destino"
+    if ($LASTEXITCODE -ne 0) { Erro "Não consegui baixar o agente. Confira a internet e rode de novo." }
+    Ok "Agente instalado em $Destino"
   } else {
     Baixar-Pacote
-    Ok "Skill instalada em $Destino"
+    Ok "Agente instalado em $Destino"
   }
 
   Write-Host ""
@@ -119,7 +119,7 @@ function Baixar-Pacote {
     Move-Item $pasta.FullName $Destino
     Set-Content -Path (Join-Path $Destino ".instalado-sem-git") -Value (Get-Date)
   } catch {
-    Erro "Não consegui baixar a skill. Confira a internet e rode de novo."
+    Erro "Não consegui baixar o agente. Confira a internet e rode de novo."
   } finally {
     Remove-Item -Recurse -Force $tmp -ErrorAction SilentlyContinue
   }

@@ -1,6 +1,6 @@
 # Aviso legal e termos de uso
 
-**Leia antes de instalar ou usar o Paspalhômetro (skill `/paspalho`).** Ao instalar, copiar ou usar esta ferramenta, você declara que leu, entendeu e concorda com tudo o que está abaixo. Se não concordar, não instale e não use.
+**Leia antes de instalar ou usar o Paspalhômetro (agente `/paspalho` do Claude Code).** Ao instalar, copiar ou usar esta ferramenta, você declara que leu, entendeu e concorda com tudo o que está abaixo. Se não concordar, não instale e não use.
 
 Neste aviso, "ferramenta" é o código deste repositório. "Autora" é [Ana G. Soares](https://instagram.com/ana.gsoares), e as proteções valem também para a UNIAGIL e para quem contribuiu com o código. "Você" é quem instala ou usa a ferramenta.
 

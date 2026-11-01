@@ -1,5 +1,5 @@
 #!/bin/sh
-# Instala (ou atualiza) a skill /paspalho do Claude Code.
+# Instala (ou atualiza) o agente /paspalho do Claude Code.
 #
 # Uso, no Terminal do Mac:
 #   curl -fsSL https://raw.githubusercontent.com/anagsoares/paspalho/main/instalar.sh | sh
@@ -8,7 +8,7 @@
 #   0. mostra o aviso legal e só continua com "sim" (ou PASPALHO_ACEITO=sim);
 #   1. confere se é Mac e se tem o Google Chrome;
 #   2. instala o uv (programa que roda os scripts), se faltar, depois de perguntar;
-#   3. baixa a skill em ~/.claude/skills/paspalho (ou atualiza, se já estiver lá).
+#   3. baixa o agente em ~/.claude/skills/paspalho (ou atualiza, se já estiver lá).
 # Não pede senha, não mexe no seu Chrome de sempre e não instala nada fora da sua pasta.
 set -e
 
@@ -27,7 +27,7 @@ perguntar() {
 }
 
 echo ""
-echo "🤡 Instalando o Paspalhômetro (skill /paspalho do Claude Code)"
+echo "🤡 Instalando o Paspalhômetro (agente /paspalho do Claude Code)"
 echo ""
 
 # 0. Aviso legal: só segue com "sim" explícito
@@ -80,7 +80,7 @@ if command -v uv >/dev/null 2>&1; then
   ok "uv"
 else
   echo ""
-  echo "  Falta o uv, um programa pequeno que roda os scripts da skill (https://docs.astral.sh/uv/)."
+  echo "  Falta o uv, um programa pequeno que roda os scripts do agente (https://docs.astral.sh/uv/)."
   if perguntar "  Posso instalar o uv agora?"; then
     curl -LsSf https://astral.sh/uv/install.sh | sh >/dev/null
     command -v uv >/dev/null 2>&1 || erro "O uv não instalou. Tente de novo ou peça ajuda ao Claude Code: 'instala o uv pra mim'."
@@ -99,27 +99,27 @@ tem_git() {
 baixar_pacote() {
   mkdir -p "$DESTINO"
   curl -fsSL "$REPO/archive/refs/heads/main.tar.gz" | tar -xz -C "$DESTINO" --strip-components 1 \
-    || { rm -rf "$DESTINO"; erro "Não consegui baixar a skill. Confira a internet e rode de novo."; }
+    || { rm -rf "$DESTINO"; erro "Não consegui baixar o agente. Confira a internet e rode de novo."; }
   date > "$DESTINO/.instalado-sem-git"
 }
 
 mkdir -p "$HOME/.claude/skills"
 if [ -L "$DESTINO" ]; then
-  ok "A skill já está instalada como atalho para $(readlink "$DESTINO"). Não mexi."
+  ok "O agente já está instalado como atalho para $(readlink "$DESTINO"). Não mexi."
 elif [ -d "$DESTINO/.git" ]; then
   git -C "$DESTINO" pull --ff-only -q || erro "Não consegui atualizar. Confira a internet e rode de novo."
-  ok "Skill atualizada para a versão mais nova"
+  ok "Agente atualizado para a versão mais nova"
 elif [ -f "$DESTINO/.instalado-sem-git" ]; then
   rm -rf "$DESTINO"; baixar_pacote
-  ok "Skill atualizada para a versão mais nova"
+  ok "Agente atualizado para a versão mais nova"
 elif [ -e "$DESTINO" ]; then
   erro "Já existe uma pasta $DESTINO que não veio deste instalador. Renomeie ou apague e rode de novo."
 elif tem_git; then
-  git clone -q --depth 1 "$REPO" "$DESTINO" || erro "Não consegui baixar a skill. Confira a internet e rode de novo."
-  ok "Skill instalada em $DESTINO"
+  git clone -q --depth 1 "$REPO" "$DESTINO" || erro "Não consegui baixar o agente. Confira a internet e rode de novo."
+  ok "Agente instalado em $DESTINO"
 else
   baixar_pacote
-  ok "Skill instalada em $DESTINO"
+  ok "Agente instalado em $DESTINO"
 fi
 
 echo ""

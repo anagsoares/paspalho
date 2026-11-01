@@ -1,17 +1,19 @@
 # 🤡 Paspalhômetro
 
-Uma skill pro **Claude Code** que investiga comentários agressivos nas redes sociais e monta um laudo visual, com termômetro de paspalhice.
+Um **agente de investigação** que roda no **Claude Code**: ele vasculha as redes sociais atrás de comentários agressivos e monta um laudo visual, com termômetro de paspalhice.
 
-Ela responde duas perguntas:
+Você diz quem quer investigar e ele faz o resto sozinho: decide onde procurar, lê as redes, avalia cada comentário e cava mais fundo onde encontra agressividade. Ele se instala no Claude Code como uma *skill*, então é só digitar `/paspalho` pra chamar.
 
-- **"Esse perfil é agressivo?"** Você coloca o nome e/ou as redes de alguém, e ela levanta o que essa pessoa escreve por aí. Onde encontra agressividade, aprofunda: naquela rede, naquela conta, naquele tema.
-- **"Essa pessoa fala mal de mim?"** Ela procura quem ofende, debocha ou rebaixa você no Instagram, Threads, X, LinkedIn, YouTube e na web.
+Ele responde duas perguntas:
+
+- **"Esse perfil é agressivo?"** Você coloca o nome e/ou as redes de alguém, e ele levanta o que essa pessoa escreve por aí. Onde encontra agressividade, aprofunda: naquela rede, naquela conta, naquele tema.
+- **"Essa pessoa fala mal de mim?"** Ele procura quem ofende, debocha ou rebaixa você no Instagram, Threads, X, LinkedIn, YouTube e na web.
 
 No fim aparece o laudo: quantos comentários são graves e quantos são deboche, um termômetro que vai de "Gente boa" a "PASPALHO-MOR", uma tabela com o dia da semana e a hora de cada comentário (com os xingamentos em negrito), o padrão da pessoa, quem ela mais ataca e considerações.
 
 > **Não é programador(a)? Não tem problema.** Você não precisa entender nada de código. Abra o Claude Code e diga:
 >
-> *"Quero instalar a skill Paspalhômetro deste link: https://github.com/anagsoares/paspalho. Me guia passo a passo, eu não sou programador(a)."*
+> *"Quero instalar o agente Paspalhômetro deste link: https://github.com/anagsoares/paspalho. Me guia passo a passo, eu não sou programador(a)."*
 >
 > O Claude Code lê as instruções deste repositório e faz com você.
 
@@ -21,18 +23,18 @@ No fim aparece o laudo: quantos comentários são graves e quantos são deboche,
 
 > **Ao instalar ou usar, você concorda com o [Aviso legal e termos de uso](AVISO-LEGAL.md).** Resumo: a ferramenta roda no seu computador e a responsabilidade pelo que você investiga e pelo que faz com o laudo é sua. A autora não se responsabiliza pelo mau uso. É proibido usar pra perseguir, expor, humilhar ou montar dossiê sobre alguém. O laudo é feito por IA, pode errar e não é prova nem parecer jurídico.
 
-**Use contas criadas só pra isso.** Pra ler o Instagram, o Threads, o X e o LinkedIn, a skill navega com uma conta logada, como uma pessoa faria, só que de forma automática. Isso vai contra os termos de uso dessas redes, e quem usa muito pode ter a conta limitada ou bloqueada. Por isso:
+**Use contas criadas só pra isso.** Pra ler o Instagram, o Threads, o X e o LinkedIn, o agente navega com uma conta logada, como uma pessoa faria, só que de forma automática. Isso vai contra os termos de uso dessas redes, e quem usa muito pode ter a conta limitada ou bloqueada. Por isso:
 
 - crie contas novas, só pra investigação, em cada rede;
 - não use a sua conta pessoal nem a da sua empresa;
 - não rode dezenas de investigações seguidas.
 
-**O que a skill faz e o que ela não faz:**
+**O que o agente faz e o que ele não faz:**
 
 - Lê só o que é público, que qualquer pessoa logada veria.
 - O laudo mostra o que a pessoa escreveu, onde e contra quem. Não busca endereço, família, telefone nem vida pessoal, e não tenta descobrir quem está por trás de perfis anônimos.
 - Processos judiciais aparecem só como resultado de busca pelo nome, com aviso: nome igual não quer dizer que é a mesma pessoa.
-- Ela não responde, não denuncia e não bloqueia ninguém. A decisão do que fazer é sua.
+- Ele não responde, não denuncia e não bloqueia ninguém. A decisão do que fazer é sua.
 - O laudo não é parecer jurídico. Se algum comentário for virar caso, guarde a prova logo (print com o link e a data aparecendo, ou ata notarial), porque comentário pode ser apagado.
 
 ---
@@ -64,7 +66,7 @@ No fim aparece o laudo: quantos comentários são graves e quantos são deboche,
    | Paspalhão | Agressividade é parte do jeito de conversar |
    | PASPALHO-MOR | Ataca pessoas de forma recorrente e grave |
 
-   Todo comentário do laudo tem o link pra você conferir o original. A skill nunca inventa nem reescreve comentário.
+   Todo comentário do laudo tem o link pra você conferir o original. O agente nunca inventa nem reescreve comentário.
 
 ---
 
@@ -107,8 +109,8 @@ irm https://raw.githubusercontent.com/anagsoares/paspalho/main/instalar.ps1 | ie
 
 - mostra o resumo do [aviso legal](AVISO-LEGAL.md) e só continua se você digitar **sim**;
 - confere se você tem o Chrome;
-- instala o **uv** (um programa pequeno que roda os scripts da skill), se faltar. Ele pergunta antes;
-- coloca a skill na pasta do Claude Code (`.claude/skills/paspalho`, dentro da sua pasta de usuário).
+- instala o **uv** (um programa pequeno que roda os scripts do agente), se faltar. Ele pergunta antes;
+- coloca o agente na pasta de skills do Claude Code (`.claude/skills/paspalho`, dentro da sua pasta de usuário).
 
 Ele não pede senha e não mexe no seu Chrome de sempre.
 
@@ -124,7 +126,7 @@ E instale o uv: no Mac, `curl -LsSf https://astral.sh/uv/install.sh | sh`; no Wi
 
 ## Primeira vez: logar as contas de investigação
 
-Na primeira vez que você usar, a skill abre um **Chrome separado**, só pra investigação. Ele tem um perfil próprio e não mexe no seu Chrome de sempre.
+Na primeira vez que você usar, o agente abre um **Chrome separado**, só pra investigação. Ele tem um perfil próprio e não mexe no seu Chrome de sempre.
 
 Nesse Chrome abrem quatro telas de login: **Instagram, Threads, X e LinkedIn**. Entre com as contas de investigação que você criou. Os logins ficam salvos nesse Chrome, então você só faz isso uma vez. Quem digita a senha é sempre você: o Claude nunca vê nem digita senha.
 
@@ -156,10 +158,10 @@ Na sua pasta **Downloads**, dentro de `Paspalho/<nome do perfil>/`. Cada investi
 
 ## Privacidade e segurança
 
-- **Tudo fica no seu computador.** Os laudos, os pedidos e o Chrome da investigação ficam no seu computador. Nada vai pra um servidor da skill (ela não tem servidor). Os textos coletados passam pelo Claude, como qualquer conversa sua no Claude Code.
+- **Tudo fica no seu computador.** Os laudos, os pedidos e o Chrome da investigação ficam no seu computador. Nada vai pra um servidor do agente (ele não tem servidor). Os textos coletados passam pelo Claude, como qualquer conversa sua no Claude Code.
 - **O Paspalhômetro só aceita pedido dele mesmo.** A página roda em `localhost` e recusa pedido vindo de qualquer outro site aberto no seu navegador.
 - **O Chrome da investigação guarda os logins** das contas de investigação, na pasta `~/.claude/paspalho/chrome`. Quem usa o seu computador consegue entrar nessas contas. Mais um motivo pra não usar sua conta pessoal.
-- **O código é aberto.** Dá pra ler tudo o que a skill faz neste repositório.
+- **O código é aberto.** Dá pra ler tudo o que o agente faz neste repositório.
 
 ## Atualizar e desinstalar
 
@@ -177,7 +179,7 @@ No Windows, cole no PowerShell:
 Remove-Item -Recurse -Force "$HOME\.claude\skills\paspalho", "$HOME\.claude\paspalho"
 ```
 
-Isso apaga a skill, o histórico de pedidos e o Chrome da investigação (com os logins). Os laudos em `Downloads/Paspalho` continuam lá até você apagar.
+Isso apaga o agente, o histórico de pedidos e o Chrome da investigação (com os logins). Os laudos em `Downloads/Paspalho` continuam lá até você apagar.
 
 ## Perguntas comuns
 
@@ -191,7 +193,7 @@ Peça pro Claude Code: *"abre as telas de login do paspalho"*. Entre na rede que
 Volte na conversa do Claude Code e diga: *"pega o pedido do paspalhômetro"*.
 
 **O laudo diz que não achou nada. Quer dizer que a pessoa é tranquila?**
-Quer dizer que não achou nada no que conseguiu ler. O laudo sempre mostra quanto foi lido em cada rede. O Instagram, por exemplo, não lista os comentários que uma pessoa fez: a skill procura nos perfis onde ela provavelmente comenta.
+Quer dizer que não achou nada no que conseguiu ler. O laudo sempre mostra quanto foi lido em cada rede. O Instagram, por exemplo, não lista os comentários que uma pessoa fez: o agente procura nos perfis onde ela provavelmente comenta.
 
 **A pessoa me bloqueou (ou eu bloqueei ela). E agora?**
 Bloqueio esconde o perfil nos dois sentidos. É mais um motivo pra usar uma conta de investigação, que não tem bloqueio com ninguém.
