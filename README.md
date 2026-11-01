@@ -4,6 +4,10 @@ Um **agente de investigação** que roda no **Claude Code**: ele vasculha as red
 
 Você diz quem quer investigar e ele faz o resto sozinho: decide onde procurar, lê as redes, avalia cada comentário e cava mais fundo onde encontra agressividade. Ele se instala no Claude Code como uma *skill*, então é só digitar `/paspalho` pra chamar.
 
+![O Paspalhômetro com um laudo de exemplo: formulário, placar, termômetro de paspalhice e a tabela de comentários agressivos](assets/paspalhometro.png)
+
+<sub>Laudo de exemplo, com perfis inventados.</sub>
+
 Ele responde duas perguntas:
 
 - **"Esse perfil é agressivo?"** Você coloca o nome e/ou as redes de alguém, e ele levanta o que essa pessoa escreve por aí. Onde encontra agressividade, aprofunda: naquela rede, naquela conta, naquele tema.
@@ -67,6 +71,14 @@ No fim aparece o laudo: quantos comentários são graves e quantos são deboche,
    | PASPALHO-MOR | Ataca pessoas de forma recorrente e grave |
 
    Todo comentário do laudo tem o link pra você conferir o original. O agente nunca inventa nem reescreve comentário.
+
+<details>
+<summary>Ver um laudo completo de exemplo</summary>
+
+![Laudo completo de exemplo: placar, termômetro, tabela, padrão, alvos, quando ataca, temas, processos e considerações](assets/laudo-exemplo.png)
+
+<sub>Perfis e comentários inventados.</sub>
+</details>
 
 ---
 
